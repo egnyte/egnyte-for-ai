@@ -1,0 +1,11 @@
+{
+  "name": "egnyte-plugin-marketplace",
+  "owner": { "name": "Egnyte" },
+  "plugins": [
+    {
+      "name": "egnyte",
+      "source": "./",
+      "description": "Search, read, and manage Egnyte content via the Egnyte MCP server and CLI."
+    }
+  ]
+}

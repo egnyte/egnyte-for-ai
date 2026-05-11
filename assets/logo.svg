@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <rect width="200" height="60" rx="8" fill="#14264A"/>
+  <text x="20" y="40" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#0BC5BA" letter-spacing="-0.5">egnyte</text>
+  <circle cx="175" cy="30" r="12" fill="#0BC5BA" opacity="0.2"/>
+  <circle cx="175" cy="30" r="7" fill="#0BC5BA"/>
+</svg>

@@ -1,0 +1,19 @@
+{
+  "name": "egnyte",
+  "version": "1.0.0",
+  "author": { "name": "Egnyte", "url": "https://github.com/egnyte" },
+  "license": "Apache-2.0",
+  "repository": "https://github.com/egnyte/egnyte-for-ai",
+  "homepage": "https://developers.egnyte.com",
+  "description": "Egnyte Plugin for Codex — search, read, and manage content in Egnyte via the Egnyte MCP server and Egnyte CLI.",
+  "tags": [
+    "egnyte",
+    "ai",
+    "content",
+    "enterprise-storage",
+    "file-management",
+    "knowledge-base",
+    "mcp"
+  ],
+  "logo": "assets/logo.svg"
+}

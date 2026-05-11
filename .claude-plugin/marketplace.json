@@ -1,0 +1,11 @@
+{
+  "name": "egnyte-for-ai",
+  "owner": { "name": "Egnyte" },
+  "plugins": [
+    {
+      "name": "egnyte",
+      "source": "./",
+      "description": "Search, manage, and extract intelligence from Egnyte enterprise content via the Egnyte MCP server and CLI."
+    }
+  ]
+}
