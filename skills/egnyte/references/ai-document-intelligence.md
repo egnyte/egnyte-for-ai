@@ -108,6 +108,8 @@ summarize_document(
 ```
 The summary is in `response.text`.
 
+> **No citations:** `summarize_document` does not support `include_citations`. Summaries cannot be verified against source excerpts. For a citation-backed summary, use `ask_document(question="Summarize the key points of this document", include_citations=true)` instead — it returns the same summary-style answer with verifiable source chunks attached.
+
 ### CLI: egnyte ai summarize
 
 ```bash

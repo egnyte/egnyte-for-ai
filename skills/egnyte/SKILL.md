@@ -1,3 +1,8 @@
+---
+name: egnyte
+description: Work with Egnyte enterprise content - search and browse files, summarize and ask questions about documents, query knowledge bases, manage metadata, create share links, post comments, and run bulk operations via the Egnyte MCP server or CLI. Triggers for any Egnyte file, folder, search, AI document intelligence, or collaboration task.
+---
+
 # Egnyte Skill
 
 Activate this skill whenever the user wants to work with Egnyte content: finding, reading, uploading, summarizing, searching, sharing, commenting, tagging files and folders, managing permissions, or running bulk operations.
@@ -25,6 +30,7 @@ Check CLI:
      `egnyte login --domain https://<domain>.egnyte.com --client-id <id> --client-secret <secret>`
    - See [`auth-and-setup.md`](references/auth-and-setup.md) for how to obtain credentials.
    - **Never navigate to developers.egnyte.com or attempt to register an OAuth app automatically.**
+4. **If `npm` is not available** (e.g., sandboxed runtimes such as Claude Cowork with no persistent shell): skip the CLI tier entirely. Inform the user that operations requiring the CLI (audit logs, events, bulk permissions, user management) are not available in this environment, and proceed with MCP tools only.
 
 ---
 
@@ -75,10 +81,11 @@ These are easy to get wrong and cause silent failures or data loss. They are not
 | **`upload_file` limit: 8 MB, plain text only** | For binary or large files, use `egnyte fs upload` or `fs upload-chunked` (CLI) |
 | **`set_file_metadata` REPLACES all values** | Read current metadata first, merge, then write — or you'll lose existing fields |
 | **`get_file_content` returns plain text** | Not base64; response fields are `entryId`, `groupId`, `content`, `totalCharacters`, `hasMore` |
-| **`advanced_search` max 20 results/page** | Use `offset` + `hasMore` for pagination; pass the returned `offset` value directly as the next call's `offset` |
+| **`advanced_search` max 20 results/page** | Use `offset` + `hasMore` for pagination; pass the returned `offset` value directly as the next call's `offset` (it is the start of the next page, not the current position) |
+| **`list_metadata_namespaces` response may be very large** | Call once per session and cache the result; do not re-fetch every turn. Domains with many namespaces or deep field schemas may return 100–200 KB+ per call. |
 | **AI tools need UUIDs, not paths** | `ask_document`, `summarize_document`, `ask_knowledge_base` take `entry_id` UUID — never a file path |
 | **`ask_ai_assistant` searches domain-wide without scope** | Without `file_entry_ids` or `folder_ids`, it searches all accessible content. Provide scope to restrict to specific files or folders. |
-| **`summarize_document` has no `question` param** | Takes `entry_id` only; use `ask_document` for targeted Q&A |
+| **`summarize_document` has no `question` param or citations** | Takes `entry_id` only; returns no citations — summaries cannot be verified against source excerpts. For a citation-backed summary use `ask_document(question="Summarize the key points of this document", include_citations=true)` instead. |
 | **`ask_document`/`ask_knowledge_base` param is `question`** | Not `query` |
 | **Phrase search uses double quotes** | `"exact phrase"` in query string eliminates false positives |
 
@@ -128,6 +135,8 @@ After executing, confirm the operation succeeded before reporting back to the us
 ```
 list_filesystem_by_path(path="/Shared", intent="Smoke check — confirming MCP is available")
 ```
+
+> **Note:** This confirms MCP connectivity but does not identify the acting user. The Egnyte MCP does not expose a `who_am_i` or `domain_info` primitive. If acting-user identity matters (e.g., permission scoped to the authenticated account), ask the user to confirm their Egnyte username or check `egnyte whoami` via CLI if available.
 
 **CLI smoke checks:**
 ```bash

@@ -1,19 +1,49 @@
 {
   "name": "egnyte",
   "version": "1.0.0",
-  "author": { "name": "Egnyte", "url": "https://github.com/egnyte" },
-  "license": "Apache-2.0",
-  "repository": "https://github.com/egnyte/egnyte-for-ai",
+  "description": "Search, read, and manage Egnyte content through the Egnyte MCP server and Egnyte CLI.",
+  "author": {
+    "name": "Egnyte",
+    "url": "https://github.com/egnyte"
+  },
   "homepage": "https://developers.egnyte.com",
-  "description": "Egnyte Plugin for Codex — search, read, and manage content in Egnyte via the Egnyte MCP server and Egnyte CLI.",
-  "tags": [
+  "repository": "https://github.com/egnyte/egnyte-for-ai",
+  "license": "Apache-2.0",
+  "keywords": [
     "egnyte",
     "ai",
     "content",
     "enterprise-storage",
     "file-management",
     "knowledge-base",
-    "mcp"
+    "mcp",
+    "collaboration"
   ],
-  "logo": "assets/logo.svg"
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Egnyte",
+    "shortDescription": "Work with Egnyte content from Codex.",
+    "longDescription": "Use Egnyte MCP and CLI workflows to find, read, summarize, upload, share, tag, and manage enterprise content from Codex.",
+    "developerName": "Egnyte",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write",
+      "Search"
+    ],
+    "websiteURL": "https://developers.egnyte.com",
+    "privacyPolicyURL": "https://www.egnyte.com/privacy-policy",
+    "termsOfServiceURL": "https://www.egnyte.com/terms-and-conditions/10-2022",
+    "defaultPrompt": [
+      "Find recent contracts in Egnyte and summarize renewals.",
+      "Search a project folder and answer questions from files.",
+      "Upload this report to Egnyte and create a share link."
+    ],
+    "brandColor": "#F37021",
+    "composerIcon": "./assets/logo.svg",
+    "logo": "./assets/logo.svg",
+    "screenshots": []
+  }
 }
