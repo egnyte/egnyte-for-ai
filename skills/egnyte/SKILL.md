@@ -88,6 +88,7 @@ These are easy to get wrong and cause silent failures or data loss. They are not
 | **`summarize_document` has no `question` param or citations** | Takes `entry_id` only; returns no citations — summaries cannot be verified against source excerpts. For a citation-backed summary use `ask_document(question="Summarize the key points of this document", include_citations=true)` instead. |
 | **`ask_document`/`ask_knowledge_base` param is `question`** | Not `query` |
 | **Phrase search uses double quotes** | `"exact phrase"` in query string eliminates false positives |
+| **User-shared Egnyte links need parsing before use** | Egnyte share links (`https://<domain>/dl/<token>`) and web app URLs (`https://<domain>/app/index.do#storage/files/1/<path>`) are human-readable URLs — they cannot be opened directly. Extract the identifier and call the right tool (see "Resolve a user-shared Egnyte link" workflow below). Never say "I cannot open links" before attempting resolution. If MCP tools are unavailable, ask the user for the file path (e.g., `/Shared/Folder/file.pdf`) or file name. |
 
 ---
 
@@ -124,6 +125,26 @@ These are easy to get wrong and cause silent failures or data loss. They are not
 2. If not: create_link(path="...", type="file", accessibility="anyone_with_link", expiry_date="YYYY-MM-DD", intent="Creating view-only share link for client")
 3. Return url to user; always suggest an expiry date
 ```
+
+### Resolve a user-shared Egnyte link
+
+**Share link** (`https://<domain>/dl/<token>`):
+```
+1. Extract token = last path segment after /dl/  (e.g. "9gbpBpjrxY9x")
+2. get_link_details(link_id=<token>, intent="Resolving share link to file path")
+   → returns path, type (file/folder), accessibility
+3. Proceed with the resolved path
+```
+
+**Web app URL** (`https://<domain>/app/index.do#storage/files/1/<path>`):
+```
+1. Extract fragment after "#storage/files/1/" and before "?"
+2. URL-decode (replace %20 with spaces, %2F with /, etc.)
+3. list_filesystem_by_path(path=<decoded_path>, intent="Resolving web app URL to folder/file")
+   → proceed with the result
+```
+
+**If MCP tools are unavailable**: ask the user to provide the file path (e.g., `/Shared/Folder/report.pdf`) or file name — Egnyte share links are human-readable URLs and cannot be opened without the MCP.
 
 ---
 
