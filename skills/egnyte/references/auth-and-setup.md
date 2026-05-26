@@ -56,30 +56,22 @@ claude mcp add egnyte --transport http https://mcp-server.egnyte.com/mcp
 If `egnyte whoami` returns nothing or an error, the CLI has no stored credentials.
 
 **What to do:**
-1. Ask your Egnyte admin for an OAuth `client_id` and `client_secret`, or register one yourself at [developers.egnyte.com](https://developers.egnyte.com) — this is a one-time manual step in a browser.
-2. Once you have both values, run `egnyte login` as shown below.
+1. Run `egnyte login --domain https://yourcompany.egnyte.com` — the CLI has a built-in OAuth app, no client credentials needed.
+2. A browser opens for OAuth. After approving, copy the `code` value from the redirect URL and paste it in the terminal.
 3. For CI/headless: set `EGNYTE_TOKEN` + `EGNYTE_DOMAIN` env vars instead — no login command needed.
 
-**An AI agent cannot and must not register an OAuth app or generate credentials automatically.**
-
-### Register an OAuth application
-
-1. Go to [developers.egnyte.com](https://developers.egnyte.com) and create an API key
-2. Set **Redirect URI** to `https://www.egnyte.com`
-3. Request scopes: `Egnyte.filesystem Egnyte.ai Egnyte.user` (space-separated)
-
-> This step must be done manually in a browser — it cannot be automated by an AI agent.
+**An AI agent cannot and must not navigate to developers.egnyte.com or register an OAuth app automatically.**
 
 ### Install and authenticate
 
 ```bash
 npm install -g @egnyte/agentic-cli
 
-# Interactive login (opens browser for OAuth)
-egnyte login \
-  --domain https://yourcompany.egnyte.com \
-  --client-id YOUR_CLIENT_ID \
-  --client-secret YOUR_CLIENT_SECRET
+# Interactive login — built-in OAuth app, no client credentials required
+egnyte login --domain https://yourcompany.egnyte.com
+
+# Optional: use a custom OAuth app
+egnyte login --domain https://yourcompany.egnyte.com --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
 ```
 
 Credentials are stored at `~/.config/egnyte-cli/config.json` (mode `0600`).
@@ -101,8 +93,8 @@ export EGNYTE_DOMAIN=https://yourcompany.egnyte.com
 ### Multiple profiles (multiple domains)
 
 ```bash
-egnyte login --domain https://co-staging.egnyte.com --client-id <id> --client-secret <s> --profile staging
-egnyte login --domain https://co.egnyte.com --client-id <id> --client-secret <s> --profile prod
+egnyte login --domain https://co-staging.egnyte.com --profile staging
+egnyte login --domain https://co.egnyte.com --profile prod
 
 egnyte profiles list
 egnyte profiles use staging
