@@ -21,7 +21,7 @@ Add to `~/.codex/config.json`:
 
 ```bash
 npm install -g @egnyte/agentic-cli
-egnyte login --domain https://<yourcompany>.egnyte.com --client-id <id> --client-secret <secret>
+egnyte login --domain https://<yourcompany>.egnyte.com
 ```
 
 ## Install Plugin

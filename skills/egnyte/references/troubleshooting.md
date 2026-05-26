@@ -35,7 +35,7 @@ claude mcp add egnyte --transport http https://mcp-server.egnyte.com/mcp
 **CLI:**
 ```bash
 egnyte logout
-egnyte login --domain https://yourcompany.egnyte.com --client-id <id> --client-secret <secret>
+egnyte login --domain https://yourcompany.egnyte.com
 ```
 
 ---
@@ -210,7 +210,7 @@ egnyte fs upload-chunked /Shared/bigfile.pdf --file ./bigfile.pdf --progress --y
 ```bash
 npm install -g @egnyte/agentic-cli
 egnyte --version
-egnyte login --domain https://yourcompany.egnyte.com --client-id <id> --client-secret <secret>
+egnyte login --domain https://yourcompany.egnyte.com
 ```
 
 ---

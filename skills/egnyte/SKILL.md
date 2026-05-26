@@ -25,10 +25,11 @@ Check CLI:
 1. `egnyte --version` — if not found, install: `npm install -g @egnyte/agentic-cli`
 2. `egnyte whoami` — if credentials are configured, proceed.
 3. **If no credentials** (no output or "not logged in"):
-   - Check env vars first: `echo $EGNYTE_TOKEN $EGNYTE_DOMAIN`. If both are set, the CLI uses them automatically.
-   - Otherwise: **stop. Ask the user for their `client_id` and `client_secret`**, then run:
-     `egnyte login --domain https://<domain>.egnyte.com --client-id <id> --client-secret <secret>`
-   - See [`auth-and-setup.md`](references/auth-and-setup.md) for how to obtain credentials.
+   - Check env vars first: `test -n "$EGNYTE_TOKEN" && test -n "$EGNYTE_DOMAIN" && echo "env vars set"`. If both are set, the CLI uses them automatically.
+   - Otherwise: **stop. Ask the user for their Egnyte domain**, then run:
+     `egnyte login --domain https://<domain>.egnyte.com`
+   - The CLI has a built-in OAuth app — no client credentials needed. Browser opens for OAuth; user pastes the `code` from the redirect URL.
+   - See [`auth-and-setup.md`](references/auth-and-setup.md) for full auth options.
    - **Never navigate to developers.egnyte.com or attempt to register an OAuth app automatically.**
 4. **If `npm` is not available** (e.g., sandboxed runtimes such as Claude Cowork with no persistent shell): skip the CLI tier entirely. Inform the user that operations requiring the CLI (audit logs, events, bulk permissions, user management) are not available in this environment, and proceed with MCP tools only.
 
