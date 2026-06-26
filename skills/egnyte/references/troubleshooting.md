@@ -73,7 +73,7 @@ egnyte perms set-user /Shared/The/Path --json '{"users":{"username":"Viewer"}}' 
 
 **Cause:** QPS limit exceeded.
 
-The CLI retries automatically with backoff. Check `egnyte --version` release notes for current retry behavior. The MCP returns an informative error with retry guidance. Do not retry immediately in a loop.
+The CLI retries automatically with backoff. Check the `@egnyte/agentic-cli` changelog for current retry behavior. The MCP returns an informative error with retry guidance. Do not retry immediately in a loop.
 
 Check remaining quota:
 ```bash
@@ -209,7 +209,7 @@ egnyte fs upload-chunked /Shared/bigfile.pdf --file ./bigfile.pdf --progress --y
 
 ```bash
 npm install -g @egnyte/agentic-cli
-egnyte --version
+egnyte whoami
 egnyte login --domain https://yourcompany.egnyte.com
 ```
 
