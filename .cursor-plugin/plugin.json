@@ -1,12 +1,14 @@
 {
   "name": "egnyte",
-  "version": "1.0.0",
-  "author": { "name": "Egnyte", "url": "https://github.com/egnyte" },
-  "license": "Apache-2.0",
-  "repository": "https://github.com/egnyte/egnyte-for-ai",
+  "version": "1.1.0",
+  "description": "Search, read, and manage Egnyte content, use Egnyte AI document intelligence, and run bulk operations through the Egnyte MCP server and Egnyte CLI.",
+  "author": {
+    "name": "Egnyte"
+  },
   "homepage": "https://developers.egnyte.com",
-  "description": "Egnyte Plugin for Cursor — search, read, and manage content in Egnyte, leverage AI document intelligence, and run bulk operations via the Egnyte MCP server and Egnyte CLI.",
-  "tags": [
+  "repository": "https://github.com/egnyte/egnyte-for-ai",
+  "license": "Apache-2.0",
+  "keywords": [
     "egnyte",
     "ai",
     "content",
@@ -14,7 +16,11 @@
     "file-management",
     "agents",
     "mcp",
-    "collaboration"
+    "collaboration",
+    "search"
   ],
-  "logo": "assets/logo.svg"
+  "logo": "assets/logo.svg",
+  "skills": "./skills/",
+  "rules": "./rules/",
+  "mcpServers": "./.mcp.json"
 }

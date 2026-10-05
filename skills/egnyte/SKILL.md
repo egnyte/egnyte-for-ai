@@ -33,7 +33,7 @@ Probe MCP: call `list_filesystem_by_path` with `path="/Shared"` (using whichever
 
 Check CLI with the shell tool identified above:
 
-1. Run `egnyte whoami`. If the command is not found, ask the user whether to install the CLI. Install only after they agree, using the pinned version: `npm install -g @egnyte/agentic-cli@1.0.1`. If they decline, continue with MCP.
+1. Run `egnyte whoami`. If the command is not found, ask the user whether to install the CLI. Install only after they agree, using the pinned version: `npm install -g @egnyte/agentic-cli@2.1.1`. If they decline, continue with MCP.
 2. `egnyte schema --list`: confirm the CLI is installed and the current command surface is discoverable.
 3. `egnyte whoami`: check whether a stored profile exists.
 4. `egnyte userinfo`: if it returns a user record, proceed. If it fails, treat auth as stale and re-authenticate.

@@ -1,8 +1,8 @@
 # Egnyte CLI Reference
 
 **Package:** `@egnyte/agentic-cli`
-**Version:** `1.0.1`
-**Install:** `npm install -g @egnyte/agentic-cli@1.0.1` (only after the user confirms)
+**Version:** `2.1.1`
+**Install:** `npm install -g @egnyte/agentic-cli@2.1.1` (only after the user confirms)
 **License:** Apache-2.0
 
 The Egnyte CLI is designed for AI agent consumption: JSON-only output, zero runtime dependencies, `--dry-run` on every mutation, `--fields` for response masking.
@@ -393,7 +393,7 @@ egnyte fs delete --bulk-file-path ./delete.csv --parallelism 2 --progress --yes
 
 | Symptom | Fix |
 |---|---|
-| `command not found: egnyte` | Run `npm install -g @egnyte/agentic-cli`; if still missing, run `npm bin -g` to find path and add to PATH |
+| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.1.1` and run it after the user confirms; if still missing, run `npm prefix -g` and add its `bin` folder to PATH |
 | Auth error / 401 | Run `egnyte whoami`; re-authenticate — see [`auth-and-setup.md`](auth-and-setup.md) |
 | Path errors | Ensure all Egnyte paths start with `/` |
 | Large response truncated | Add `--fields` to limit response fields |

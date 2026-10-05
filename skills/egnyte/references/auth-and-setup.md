@@ -20,24 +20,20 @@ list_filesystem_by_path path="/"
 
 ### Add to Cursor
 
-`~/.cursor/mcp.json`:
+The Cursor plugin bundles the server. Without the plugin, add to `~/.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "egnyte": { "url": "https://mcp-server.egnyte.com/mcp", "transport": "http" }
+    "egnyte": { "url": "https://mcp-server.egnyte.com/mcp" }
   }
 }
 ```
 
 ### Add to Codex
 
-`~/.codex/config.json`:
-```json
-{
-  "mcpServers": {
-    "egnyte": { "url": "https://mcp-server.egnyte.com/mcp", "transport": "http" }
-  }
-}
+The Codex plugin bundles the server. Without the plugin:
+```bash
+codex mcp add egnyte --url https://mcp-server.egnyte.com/mcp
 ```
 
 ### Re-authenticate (MCP)
@@ -67,7 +63,7 @@ If `egnyte whoami` returns nothing or an error, the CLI has no stored credential
 Install only after the user confirms, and pin the version:
 
 ```bash
-npm install -g @egnyte/agentic-cli@1.0.1
+npm install -g @egnyte/agentic-cli@2.1.1
 
 # Interactive login — built-in OAuth app, no client credentials required
 egnyte login --domain https://yourcompany.egnyte.com
@@ -196,7 +192,7 @@ egnyte login --domain https://yourcompany.egnyte.com --client-id <id> --client-s
 | Symptom | Fix |
 |---------|-----|
 | `execute_command` tool missing | cowork-terminal-mcp is not set up. It is optional; offer the setup above, or use MCP tools |
-| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@1.0.1` and run it after the user confirms; if still missing, run `npm bin -g` to find the path and advise the user to add it to PATH |
+| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.1.1` and run it after the user confirms; if still missing, run `npm prefix -g` and check its `bin` folder and advise the user to add it to PATH |
 | `egnyte login` doesn't complete | Browser may not have opened — ask user to open the OAuth URL manually, approve, and paste the `code` back in chat |
 | Auth error / 401 | Re-authenticate via Option A or B |
 | Path errors | Ensure all Egnyte paths start with `/` |

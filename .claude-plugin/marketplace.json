@@ -3,12 +3,13 @@
   "owner": {
     "name": "Egnyte"
   },
-  "description": "Egnyte plugins for Claude: search, manage, and extract intelligence from Egnyte enterprise content.",
+  "description": "Egnyte plugins for AI coding agents: search, manage, and extract intelligence from Egnyte enterprise content.",
   "plugins": [
     {
       "name": "egnyte",
       "source": "./",
-      "description": "Search, manage, and extract intelligence from Egnyte enterprise content via the Egnyte MCP server and CLI.",
+      "description": "Search, read, and manage Egnyte content, use Egnyte AI document intelligence, and run bulk operations through the Egnyte MCP server and Egnyte CLI.",
+      "category": "productivity",
       "tags": [
         "egnyte",
         "ai",
@@ -17,7 +18,8 @@
         "file-management",
         "agents",
         "mcp",
-        "collaboration"
+        "collaboration",
+        "search"
       ]
     }
   ]

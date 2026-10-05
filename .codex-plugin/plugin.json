@@ -1,7 +1,7 @@
 {
   "name": "egnyte",
-  "version": "1.0.0",
-  "description": "Search, read, and manage Egnyte content through the Egnyte MCP server and Egnyte CLI.",
+  "version": "1.1.0",
+  "description": "Search, read, and manage Egnyte content, use Egnyte AI document intelligence, and run bulk operations through the Egnyte MCP server and Egnyte CLI.",
   "author": {
     "name": "Egnyte",
     "url": "https://github.com/egnyte"
@@ -17,7 +17,8 @@
     "file-management",
     "agents",
     "mcp",
-    "collaboration"
+    "collaboration",
+    "search"
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
@@ -41,7 +42,7 @@
       "Search a project folder and answer questions from files.",
       "Upload this report to Egnyte and create a share link."
     ],
-    "brandColor": "#F37021",
+    "brandColor": "#0BC5BA",
     "composerIcon": "./assets/logo.svg",
     "logo": "./assets/logo.svg",
     "screenshots": []

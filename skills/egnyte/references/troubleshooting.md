@@ -214,7 +214,7 @@ egnyte fs upload-chunked /Shared/bigfile.pdf --file ./bigfile.pdf --progress --y
 ## CLI: command not found
 
 ```bash
-npm install -g @egnyte/agentic-cli
+npm install -g @egnyte/agentic-cli@2.1.1
 egnyte whoami
 egnyte login --domain https://yourcompany.egnyte.com
 ```

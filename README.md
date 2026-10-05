@@ -62,15 +62,15 @@ The Egnyte skill follows the [Agent Skills Open Standard](https://agentskills.io
 
 ## Prerequisites
 
-- **Egnyte MCP server** — Add to Claude Code:
+- **Egnyte MCP server**: bundled with the plugin on Claude Code, Cursor, and Codex. If you only install the skill, add the server yourself, for example in Claude Code:
   ```bash
   claude mcp add egnyte --transport http https://mcp-server.egnyte.com/mcp
   ```
-  The MCP server handles authentication via OAuth — you'll be redirected to your Egnyte domain on first use.
+  The MCP server handles authentication via OAuth; you'll be redirected to your Egnyte domain on first use.
 
 - **Egnyte CLI** (optional) — For bulk operations, permissions, and scripting:
   ```bash
-  npm install -g @egnyte/agentic-cli
+  npm install -g @egnyte/agentic-cli@2.1.1
   egnyte login --domain https://<yourcompany>.egnyte.com
   ```
 
@@ -81,7 +81,7 @@ Preferred order for agent tooling is MCP first, Egnyte CLI second, and direct RE
 ```bash
 # With Egnyte CLI installed and authenticated:
 egnyte whoami
-egnyte fs list /
+egnyte fs get / --json '{"list_content":true}' --fields folders.name,folders.path
 
 # Verify MCP is connected (in Claude Code):
 # Ask Claude: "List the root of my Egnyte domain"

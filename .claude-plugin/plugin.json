@@ -1,13 +1,28 @@
 {
   "name": "egnyte",
-  "version": "1.0.0",
+  "displayName": "Egnyte",
+  "version": "1.1.0",
+  "description": "Search, read, and manage Egnyte content, use Egnyte AI document intelligence, and run bulk operations through the Egnyte MCP server and Egnyte CLI.",
   "author": {
     "name": "Egnyte",
     "url": "https://github.com/egnyte"
   },
-  "license": "Apache-2.0",
-  "repository": "https://github.com/egnyte/egnyte-for-ai",
   "homepage": "https://developers.egnyte.com",
-  "description": "Egnyte Plugin for Claude Code to search, read, and manage content in Egnyte, leverage AI document intelligence, and run bulk operations via the Egnyte MCP server and Egnyte CLI.",
-  "icon": "assets/logo.svg"
+  "repository": "https://github.com/egnyte/egnyte-for-ai",
+  "license": "Apache-2.0",
+  "keywords": [
+    "egnyte",
+    "ai",
+    "content",
+    "enterprise-storage",
+    "file-management",
+    "mcp",
+    "collaboration",
+    "search"
+  ],
+  "icon": "./assets/logo.svg",
+  "documentationUrl": "https://developers.egnyte.com",
+  "supportUrl": "https://helpdesk.egnyte.com",
+  "privacyPolicyUrl": "https://www.egnyte.com/privacy-policy",
+  "termsOfServiceUrl": "https://www.egnyte.com/terms-and-conditions/10-2022"
 }
