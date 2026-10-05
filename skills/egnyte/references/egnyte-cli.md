@@ -2,7 +2,7 @@
 
 **Package:** `@egnyte/agentic-cli`
 **Version:** `1.0.1`
-**Install:** `npm install -g @egnyte/agentic-cli`
+**Install:** `npm install -g @egnyte/agentic-cli@1.0.1` (only after the user confirms)
 **License:** Apache-2.0
 
 The Egnyte CLI is designed for AI agent consumption: JSON-only output, zero runtime dependencies, `--dry-run` on every mutation, `--fields` for response masking.
@@ -13,14 +13,13 @@ The Egnyte CLI is designed for AI agent consumption: JSON-only output, zero runt
 
 ## Environment detection (check before any CLI call)
 
-**Check `execute_command` first — before checking Bash.**
-
 | Priority | Condition | Action |
 |----------|-----------|--------|
-| 1 | `execute_command` tool is present | Use `execute_command` for ALL CLI calls (CoWork + cowork-terminal-mcp). Do not use `mcp__workspace__bash` — it is an isolated sandbox without the user's installed packages. Pass `EGNYTE_TOKEN` + `EGNYTE_DOMAIN` via the `env` parameter on every call. **Never assume the CLI is absent — always run `execute_command` with `egnyte whoami` to verify before drawing any conclusion.** |
-| 2 | `execute_command` absent, Bash available | Use Bash for all CLI calls (Claude Code). |
-| 3 | `execute_command` absent, Bash unavailable | `cowork-terminal-mcp` is not installed. **Direct the user to Claude Code** — ask it to install the Egnyte CLI and `cowork-terminal-mcp`. Claude Code runs the full setup automatically (installs both packages, updates `claude_desktop_config.json`) with no manual steps. After installation, the user restarts Claude Desktop once and `execute_command` will be available here. See [`auth-and-setup.md`](auth-and-setup.md#installing-via-claude-code-recommended). |
-| 4 | Neither available | Skip CLI entirely. Inform user and proceed with MCP tools only. |
+| 1 | `execute_command` tool is present | CoWork with cowork-terminal-mcp. Use `execute_command` for CLI calls and verify with `egnyte whoami` before concluding the CLI is absent. The CLI uses its stored login profile; do not pass tokens or other secrets in `env`. |
+| 2 | `execute_command` absent, Bash available | Claude Code. Use Bash for CLI calls. |
+| 3 | No shell tool that can see the user's machine | Skip the CLI and proceed with MCP tools. If the task needs the CLI, tell the user it is available from Claude Code. Optional CoWork terminal setup is in [`auth-and-setup.md`](auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp); do it only if the user asks. |
+
+An isolated workspace shell (for example `mcp__workspace__bash`) cannot see the user's installed packages, so a "not found" result there is not evidence the CLI is missing.
  
 ---
 

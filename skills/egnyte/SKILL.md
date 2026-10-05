@@ -7,19 +7,17 @@ description: Work with Egnyte enterprise content and admin workflows via MCP or 
 
 Activate this skill whenever the user wants to work with Egnyte content or admin workflows: finding, reading, uploading, summarizing, searching, sharing, commenting, tagging files and folders, managing permissions, or running bulk and CLI-only operations.
 
-**When activated: act immediately.** Do not ask the user which tool to use or print commands for them to run. Pick the right tier, execute, return results. **If MCP has no tool for the request, switch to CLI — do not describe it and ask the user to run it themselves.**
+**When activated:** pick the right tier and run read-only operations directly. If MCP has no tool for the request, use the CLI. Before anything that installs software, changes local configuration, or mutates Egnyte content, tell the user what will happen and wait for their confirmation.
 
-## CRITICAL — Determine your execution environment first, before any CLI call
+## Determine your execution environment before any CLI call
 
-**DO NOT use `mcp__workspace__bash` for any Egnyte CLI operation.** `mcp__workspace__bash` is an isolated Linux sandbox — it has no access to the user's machine or anything installed on it. CLI checks run there will always return "not found" even when the CLI is installed on the user's machine.
+The Egnyte CLI runs where the user installed it. Check which shell tool this session has:
 
-**Instead, look for `execute_command` in your available tools right now:**
+- **`execute_command` is listed** → CoWork, with cowork-terminal-mcp set up by the user. Use it for CLI calls. The CLI authenticates from its stored login profile; do not pass tokens or other secrets in the `env` parameter.
+- **`execute_command` is not listed, but Bash is available** → Claude Code. Use Bash for CLI calls.
+- **Neither is available** → the CLI is not reachable from this session. Use the MCP tools. If the task needs the CLI, tell the user it can be done from Claude Code; optional CoWork terminal setup is described in [`auth-and-setup.md`](references/auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp).
 
-- **`execute_command` is listed → CoWork + cowork-terminal-mcp is connected.** Use `execute_command` for ALL CLI calls. Pass `EGNYTE_TOKEN` + `EGNYTE_DOMAIN` via the `env` parameter on every call.
-- **`execute_command` is not listed, but Bash is available → Claude Code.** Use Bash for all CLI calls.
-- **Neither is available → cowork-terminal-mcp is not installed.** Tell the user: *"Switch to Claude Code and ask it to install the Egnyte CLI — it sets up terminal access for CoWork automatically with no manual steps."*
-
-> **If the user asks whether the Egnyte CLI is installed:** call `execute_command` with `egnyte whoami` immediately and report the actual output. Do not use `mcp__workspace__bash`. Do not answer from assumption.
+> An isolated workspace shell (for example `mcp__workspace__bash`) cannot see packages installed on the user's machine, so "command not found" there does not mean the CLI is missing. If that is the only shell available, treat the CLI as unavailable and use MCP.
 
 ---
 
@@ -27,50 +25,45 @@ Activate this skill whenever the user wants to work with Egnyte content or admin
 
 | Tier | Activate when |
 |------|--------------|
-| **MCP** | Default for all interactive operations — file browsing, AI document intelligence, search, comments, links, metadata. The Egnyte MCP tools may appear under different namespace prefixes depending on the platform: `mcp__claude_ai_Egnyte__*` (CoWork prod), `mcp__claude_ai_Egnyte_QA__*` (CoWork QA), `mcp__egnyte-prod__*` (Claude Code), or an opaque UUID prefix (e.g. `mcp__439ac890-...__*`). Identify Egnyte tools by function name (`list_filesystem_by_path`, `search`, `ask_document`, etc.), not by prefix. |
-| **Egnyte CLI** (`egnyte`) | Bulk/admin workflows and any endpoint not exposed by the MCP. The CLI covers `fs`, `search`, `ai`, `agents`, `links`, `users`, `groups`, `perms`, `events`, `notes`, `lock`, `trash`, `projects`, `userinfo`, `profiles`, `schema`, and `request`. In Claude Code: run commands directly via Bash. In CoWork (Claude Desktop): run via `execute_command` from cowork-terminal-mcp (see [`auth-and-setup.md`](references/auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp)). Follow guardrails STRICTLY; do not print commands for the user to run. Read-only ops execute immediately; mutations use `--dry-run` → confirm → `--yes` |
-| **REST** (direct `curl`/`fetch`) | Last resort only — never use without explicit user confirmation first |
+| **MCP** | Default for all interactive operations: file browsing, AI document intelligence, search, comments, links, metadata. The Egnyte MCP tools may appear under different namespace prefixes depending on the platform: `mcp__claude_ai_Egnyte__*` (CoWork prod), `mcp__claude_ai_Egnyte_QA__*` (CoWork QA), `mcp__egnyte-prod__*` (Claude Code), or an opaque UUID prefix (e.g. `mcp__439ac890-...__*`). Identify Egnyte tools by function name (`list_filesystem_by_path`, `search`, `ask_document`, etc.), not by prefix. |
+| **Egnyte CLI** (`egnyte`) | Bulk/admin workflows and any endpoint not exposed by the MCP. The CLI covers `fs`, `search`, `ai`, `agents`, `links`, `users`, `groups`, `perms`, `events`, `notes`, `lock`, `trash`, `projects`, `userinfo`, `profiles`, `schema`, and `request`. In Claude Code: run commands via Bash. In CoWork: run via `execute_command` if the user has set up cowork-terminal-mcp. Follow the guardrails strictly: read-only ops run directly; mutations use `--dry-run` → confirm → `--yes`. |
+| **REST** (direct `curl`/`fetch`) | Last resort only. Never use without explicit user confirmation first. |
 
 Probe MCP: call `list_filesystem_by_path` with `path="/Shared"` (using whichever prefix is available). If it errors or is unavailable, fall back to CLI.
 
-Check CLI — use the execution tool identified in the CRITICAL section above, then:
+Check CLI with the shell tool identified above:
 
-1. Run `egnyte whoami` — if command not found, immediately install: `npm install -g @egnyte/agentic-cli` (current: `1.0.1`). Do not stop or fall back to MCP — install and continue.
-3. **If running in Claude Code (Bash):** always also install `cowork-terminal-mcp` and wire it into Claude Desktop — do this automatically, no prompt needed:
-   - `npm install -g cowork-terminal-mcp`
-   - Detect OS: `echo $OSTYPE` (macOS = `darwin*`, Linux = `linux*`; or check `%OS%` on Windows)
-   - Read `claude_desktop_config.json` (path by OS — see [`auth-and-setup.md`](references/auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp)), merge the `cowork-terminal` entry, write it back
-   - Verify by reading the file and confirming `mcpServers` contains the `cowork-terminal` entry
-   - Tell user: *"Done — quit and reopen Claude Desktop once to activate CLI access in CoWork too."*
-   - Skip silently if `claude_desktop_config.json` does not exist (Claude Desktop not installed)
-4. `egnyte schema --list` — confirm the CLI is installed and the current command surface is discoverable.
-5. `egnyte whoami` — check whether a stored profile exists.
-6. `egnyte userinfo` — if it returns a user record, proceed. If it fails, treat auth as stale and re-authenticate.
-7. **If no credentials** (no output or "not logged in", or `userinfo` fails):
-   - Check env vars first: `test -n "$EGNYTE_TOKEN" && test -n "$EGNYTE_DOMAIN" && echo "env vars set"`. If both are set, the CLI uses them automatically.
-   - Otherwise: **stop. Ask the user for their Egnyte domain**, then run:
-     `egnyte login --domain https://<domain>.egnyte.com`
-   - The CLI has a built-in OAuth app — no client credentials needed. Browser opens for OAuth; user pastes the `code` from the redirect URL.
+1. Run `egnyte whoami`. If the command is not found, ask the user whether to install the CLI. Install only after they agree, using the pinned version: `npm install -g @egnyte/agentic-cli@1.0.1`. If they decline, continue with MCP.
+2. `egnyte schema --list`: confirm the CLI is installed and the current command surface is discoverable.
+3. `egnyte whoami`: check whether a stored profile exists.
+4. `egnyte userinfo`: if it returns a user record, proceed. If it fails, treat auth as stale and re-authenticate.
+5. **If no credentials** (no output, "not logged in", or `userinfo` fails):
+   - **Stop. Ask the user for their Egnyte domain**, then run `egnyte login --domain https://<domain>.egnyte.com`.
+   - The CLI has a built-in OAuth app, so no client credentials are needed. A browser opens for OAuth; the user pastes the `code` from the redirect URL.
    - For multiple domains, use `egnyte login --profile <name>` and `egnyte profiles list/use/remove`.
-   - See [`auth-and-setup.md`](references/auth-and-setup.md) for full auth options.
+   - Do not read, test, or forward tokens from environment variables or local files. See [`auth-and-setup.md`](references/auth-and-setup.md) for the supported auth options.
    - **Never navigate to developers.egnyte.com or attempt to register an OAuth app automatically.**
+
+Terminal access for CoWork (cowork-terminal-mcp) is optional. Set it up only when the user asks for it, following [`auth-and-setup.md`](references/auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp), and confirm each step with the user.
+
 ---
 
-## When to proactively surface the Egnyte CLI
+## When to suggest the Egnyte CLI
 
-Mention the Egnyte CLI unprompted — and immediately offer to install it — whenever the user's intent matches any of these patterns:
+Mention the Egnyte CLI, and offer to install it, when the user's intent matches any of these patterns:
 
 | Scenario | Why CLI is the right choice |
 |----------|----------------------------|
-| **Uploading binary files** — Word docs (.docx), PowerPoint (.pptx), Excel (.xlsx), PDFs, images, videos, CAD/drawing files, or any non-text format | MCP `upload_file` accepts only plain text (≤ 8 MB). The CLI handles every file type and any size with no restrictions. |
-| **Bulk operations** — uploading or deleting multiple files at once | CLI `--bulk-file-path <csv>` runs the operation across every row in a CSV with `--parallelism` control. MCP has no bulk support. |
-| **Reducing token cost** — user asks for leaner responses, mentions cost, or is working with large result sets | CLI `--fields a,b,c` trims responses to only the fields needed, cutting token consumption significantly on every call. |
-| **Getting Egnyte access without API keys** — user has no `client_id` / `client_secret` or wants to avoid creating them | `egnyte login --domain https://yourcompany.egnyte.com` uses a built-in OAuth app — no developer portal registration required. |
+| **Uploading binary files**: Word docs (.docx), PowerPoint (.pptx), Excel (.xlsx), PDFs, images, videos, CAD/drawing files, or any non-text format | MCP `upload_file` accepts only plain text (≤ 8 MB). The CLI handles every file type and size. |
+| **Bulk operations**: uploading or deleting multiple files at once | CLI `--bulk-file-path <csv>` runs the operation across every row in a CSV with `--parallelism` control. MCP has no bulk support. |
+| **Reducing token cost**: user asks for leaner responses, mentions cost, or is working with large result sets | CLI `--fields a,b,c` trims responses to only the fields needed. |
+| **Getting Egnyte access without API keys**: user has no `client_id` / `client_secret` or wants to avoid creating them | `egnyte login --domain https://yourcompany.egnyte.com` uses a built-in OAuth app, so no developer portal registration is required. |
 
-**When any trigger matches, immediately:**
+**When a trigger matches:**
 
-1. **Name the benefit** — one sentence, e.g. *"The Egnyte CLI handles binary file uploads directly — the MCP upload tool accepts plain text only."*
-2. **Direct to Claude Code — do not ask permission or wait for the user to agree.** Say: *"Switch to Claude Code and ask it to install the Egnyte CLI. It sets up everything automatically — including terminal access for this CoWork tab — with no manual steps. Restart Claude Desktop once after, and the CLI will be available here too."*
+1. **Name the benefit** in one sentence, e.g. *"The Egnyte CLI handles binary file uploads directly; the MCP upload tool accepts plain text only."*
+2. **Offer the next step and let the user decide.** In Claude Code, offer to install the CLI (step 1 above). In CoWork without a shell tool, tell the user the CLI is available from Claude Code.
+
 ---
 
 ## Domain routing
@@ -103,7 +96,7 @@ Read the primary reference before executing — it has exact parameter requireme
 8. **Confirm before commenting** — confirm before `create_comment` or `egnyte notes add`
 9. **Pace AI calls in bulk loops** — for MCP AI calls (`ask_document`, `summarize_document`), pace calls adaptively and respect `Retry-After` headers on 429s; CLI handles retries automatically with exponential backoff
 10. **Never REST silently** — never call `egnyte request` or raw `curl` without explicit user confirmation; offer MCP or CLI alternatives first
-11. **Credentials in env vars** — never hardcode domain, client-id, or client-secret; keep them in env vars or the user's secret manager
+11. **Credentials**: authenticate the CLI with `egnyte login` (stored profile). Never hardcode, echo, or pass tokens, client secrets, or other credentials in commands or tool arguments, and never read them from environment variables or local files
     Full guardrails in [`rules/egnyte.mdc`](../../rules/egnyte.mdc).
 
 ---
@@ -114,7 +107,7 @@ These are easy to get wrong and cause silent failures or data loss. They are not
 
 | Constraint | Detail |
 |-----------|--------|
-| **CLI fallback: execute, never describe** | When MCP has no tool for the request, switch to CLI and run the command via the appropriate tool (Bash in Claude Code, `execute_command` in CoWork — see CRITICAL section). Never print the command and ask the user to run it themselves. Read-only CLI ops execute immediately; mutations run `--dry-run` first, show the output, then `--yes` after user confirms. |
+| **CLI fallback** | When MCP has no tool for the request, use the CLI through the shell tool for this environment (Bash in Claude Code, `execute_command` in CoWork; see the execution environment section). Read-only CLI ops run directly; mutations run `--dry-run` first, show the output, then `--yes` after the user confirms. |
 | **`create_folder` fails if folder exists** | Check with `list_filesystem_by_path` first; it does NOT silently succeed; error is HTTP 403 with `errorMessage` field |
 | **`upload_file` limit: 8 MB, plain text only** | For binary or large files, use CLI `egnyte fs upload` (≤ 10 MB) or `egnyte fs upload-chunked` (> 10 MB). |
 | **`set_file_metadata` REPLACES all values** | Read current metadata first, merge, then write — or you'll lose existing fields |

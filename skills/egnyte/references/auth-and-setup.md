@@ -58,14 +58,16 @@ If `egnyte whoami` returns nothing or an error, the CLI has no stored credential
 **What to do:**
 1. Run `egnyte login --domain https://yourcompany.egnyte.com` — the CLI has a built-in OAuth app, no client credentials needed.
 2. A browser opens for OAuth. After approving, copy the `code` value from the redirect URL and paste it in the terminal.
-3. For CI/headless: set `EGNYTE_TOKEN` + `EGNYTE_DOMAIN` env vars instead — no login command needed.
+3. CI pipelines that cannot run an interactive login are configured by a human; see [CI / headless environments](#ci--headless-environments). An AI agent should always use `egnyte login`.
 
 **An AI agent cannot and must not navigate to developers.egnyte.com or register an OAuth app automatically.**
 
 ### Install and authenticate
 
+Install only after the user confirms, and pin the version:
+
 ```bash
-npm install -g @egnyte/agentic-cli
+npm install -g @egnyte/agentic-cli@1.0.1
 
 # Interactive login — built-in OAuth app, no client credentials required
 egnyte login --domain https://yourcompany.egnyte.com
@@ -81,23 +83,12 @@ Credentials are stored at `~/.config/egnyte-cli/config.json` (mode `0600`).
 
 ### CI / headless environments
 
-```bash
-export EGNYTE_TOKEN=<bearer-token>
-export EGNYTE_DOMAIN=https://yourcompany.egnyte.com
-# No config file needed — env vars take precedence
-
-# Optional login-time env vars for custom OAuth behavior
-export EGNYTE_CLIENT_ID=<client-id>
-export EGNYTE_CLIENT_SECRET=<client-secret>
-export EGNYTE_SCOPE="Egnyte.filesystem Egnyte.user"   # space-separated; omit for all scopes
-export EGNYTE_REDIRECT_URI=https://www.egnyte.com      # default; only set if your app uses a different URI
-```
+For CI pipelines, a human operator configures credentials through the pipeline's secret store, following the [`@egnyte/agentic-cli`](https://www.npmjs.com/package/@egnyte/agentic-cli) documentation. An AI agent using this skill must not read, set, echo, or forward tokens or client secrets; it authenticates with `egnyte login` and the stored profile.
 
 ### Auth precedence (highest → lowest)
 
-1. `--token` / `--domain` flags on the command
-2. `EGNYTE_TOKEN` / `EGNYTE_DOMAIN` environment variables
-3. Stored profile at `~/.config/egnyte-cli/config.json`
+1. Explicit command flags or variables set by a human operator (CI only; agents do not use these)
+2. Stored profile created by `egnyte login`
 
 ### Multiple profiles (multiple domains)
 
@@ -129,34 +120,31 @@ egnyte profiles remove <name>
 
 ## Claude Desktop (via cowork-terminal-mcp)
 
-Claude Desktop Chat and CoWork tabs have no direct terminal access. Installing `cowork-terminal-mcp` bridges this gap — it provides an `execute_command` tool that runs shell commands on your host machine, giving these sessions full CLI access. The Code tab has its own terminal and does not need this setup.
+This setup is optional. Claude Desktop Chat and CoWork tabs have no direct terminal access. `cowork-terminal-mcp` is a third-party MCP server that provides an `execute_command` tool, which runs shell commands on the user's host machine. Because it gives the session host shell access, set it up only when the user asks for it, explain what it does first, and confirm each step. The Code tab has its own terminal and does not need this setup.
 
 ### 1. Install cowork-terminal-mcp
 
-Ask the user to open a terminal and run:
+With the user's confirmation, install a pinned version:
 ```
-npm install -g cowork-terminal-mcp
+npm install -g cowork-terminal-mcp@0.4.1
 ```
 If `npm` is not installed, direct them to [nodejs.org](https://nodejs.org) to install Node.js LTS first.
 
-### 2. Update claude_desktop_config.json — AI does this, do not ask the user to edit manually
+### 2. Add it to claude_desktop_config.json
 
 Config file location:
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
-Detect OS first: run `echo %OS%` — returns `Windows_NT` on Windows, blank/error on macOS/Linux.
-
-Read the existing config file, then merge the `cowork-terminal` entry into the existing `mcpServers` block. Do not remove any existing entries.
+Show the user the entry below and ask whether they want to add it themselves or have you add it. Only edit the file after they agree. Merge the entry into the existing `mcpServers` block and do not remove any existing entries.
 
 **macOS / Linux:**
 ```json
 {
   "mcpServers": {
     "cowork-terminal": {
-      "command": "npx",
-      "args": ["-y", "cowork-terminal-mcp"]
+      "command": "cowork-terminal-mcp"
     }
   }
 }
@@ -168,20 +156,16 @@ Read the existing config file, then merge the `cowork-terminal` entry into the e
   "mcpServers": {
     "cowork-terminal": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "cowork-terminal-mcp"]
+      "args": ["/c", "cowork-terminal-mcp"]
     }
   }
 }
 ```
 
-After writing, immediately verify:
-1. Read the file back and confirm the `mcpServers` section contains the `cowork-terminal` entry
-2. Explicitly state: **"I have updated `claude_desktop_config.json`"** and show the `mcpServers` block as proof
+If you made the edit, read the file back and show the user the `mcpServers` block.
 
 Then ask the user to restart:
 > Please fully quit Claude Desktop (Quit from the menu, not just close the window) and reopen it for the change to take effect.
-
-Wait for the user to confirm `execute_command` is available before continuing.
 
 ### 3. Verify
 
@@ -192,47 +176,29 @@ execute_command: egnyte whoami
 
 ### 4. Authentication in CoWork
 
-Ask the user which option fits their setup, then run the appropriate command via `execute_command`.
+Ask the user which option fits their setup, then run the command via `execute_command`.
 
-After login, the browser redirects to a URL like `https://www.egnyte.com?code=XXXXXX&state=...` — user copies the `code` and pastes it back in chat. The CLI exchanges it and stores the token automatically.
+After login, the browser redirects to a URL like `https://www.egnyte.com?code=XXXXXX&state=...`. The user copies the `code` and pastes it back in chat. The CLI exchanges it and stores the token in its profile.
 
 **Option A — domain only (uses built-in OAuth app):**
 ```bash
 egnyte login --domain https://yourcompany.egnyte.com
 ```
 
-**Option B — custom OAuth app (user has their own client-id/secret):**
-```bash
-egnyte login --domain https://yourcompany.egnyte.com --client-id <id> --client-secret <secret>
-```
-
-**Option C — custom OAuth app with restricted scopes:**
+**Option B, custom OAuth app with restricted scopes:** the user runs this in their own terminal so the client secret never passes through the chat:
 ```bash
 egnyte login --domain https://yourcompany.egnyte.com --client-id <id> --client-secret <secret> \
   --scope "Egnyte.filesystem Egnyte.user"
-```
-
-**Option D — env vars (CI / headless, token already known):**
-
-Pass `EGNYTE_TOKEN` and `EGNYTE_DOMAIN` via the `env` parameter of `execute_command` for every CLI call:
-```json
-{
-  "command": "egnyte whoami",
-  "env": {
-    "EGNYTE_TOKEN": "<bearer-token>",
-    "EGNYTE_DOMAIN": "https://yourcompany.egnyte.com"
-  }
-}
 ```
 
 ### Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
-| `execute_command` tool missing | cowork-terminal-mcp not connected — install it, add the `cowork-terminal` entry to `claude_desktop_config.json`, restart Claude Desktop |
-| `command not found: egnyte` | Run `npm install -g @egnyte/agentic-cli` via `execute_command`; if still missing, run `npm bin -g` to find the path and advise user to add it to PATH |
+| `execute_command` tool missing | cowork-terminal-mcp is not set up. It is optional; offer the setup above, or use MCP tools |
+| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@1.0.1` and run it after the user confirms; if still missing, run `npm bin -g` to find the path and advise the user to add it to PATH |
 | `egnyte login` doesn't complete | Browser may not have opened — ask user to open the OAuth URL manually, approve, and paste the `code` back in chat |
-| Auth error / 401 | Re-authenticate via Option A or B; confirm `EGNYTE_TOKEN` and `EGNYTE_DOMAIN` are passed in `env` on every `execute_command` call |
+| Auth error / 401 | Re-authenticate via Option A or B |
 | Path errors | Ensure all Egnyte paths start with `/` |
 | Large response truncated | Add `--fields` to limit response fields |
 
