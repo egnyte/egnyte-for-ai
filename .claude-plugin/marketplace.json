@@ -1,11 +1,24 @@
 {
   "name": "egnyte-for-ai",
-  "owner": { "name": "Egnyte" },
+  "owner": {
+    "name": "Egnyte"
+  },
+  "description": "Egnyte plugins for Claude: search, manage, and extract intelligence from Egnyte enterprise content.",
   "plugins": [
     {
       "name": "egnyte",
       "source": "./",
-      "description": "Search, manage, and extract intelligence from Egnyte enterprise content via the Egnyte MCP server and CLI."
+      "description": "Search, manage, and extract intelligence from Egnyte enterprise content via the Egnyte MCP server and CLI.",
+      "tags": [
+        "egnyte",
+        "ai",
+        "content",
+        "enterprise-storage",
+        "file-management",
+        "agents",
+        "mcp",
+        "collaboration"
+      ]
     }
   ]
 }
