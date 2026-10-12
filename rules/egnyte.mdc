@@ -42,7 +42,7 @@ If the user asks to upload a file without specifying a destination path:
 
 ## 6. Prefer AI tools for document analysis
 
-When the user wants to understand, summarize, or extract information from a document, use AI tools (`ask_document`, `summarize_document`, `ask_ai_assistant`, `egnyte ai ask-document`, `egnyte ai summarize`) rather than downloading raw content.
+When the user wants to understand, summarize, or extract information from a document, use AI tools (`ask_document`, `summarize_document`, `ask_ai_assistant`, `ask_agent`, `egnyte ai ask-document`, `egnyte ai summarize`, `egnyte agents ask`) rather than downloading raw content.
 
 Use `get_file_content` / `egnyte fs get-content` only when the user explicitly needs raw text for parsing, diffing, or copying.
 

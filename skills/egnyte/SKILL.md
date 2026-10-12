@@ -1,6 +1,6 @@
 ---
 name: egnyte
-description: Work with Egnyte enterprise content and admin workflows via MCP or the @egnyte/agentic-cli CLI - search and browse files, summarize and ask questions about documents, query knowledge bases, manage metadata, create share links, post comments, manage users, groups, permissions, events, notes, file locks, trash, projects, profiles, and bulk or unsupported API operations. Trigger for any Egnyte file, folder, search, AI, collaboration, or admin task.
+description: Work with Egnyte enterprise content and admin workflows via MCP or the @egnyte/agentic-cli CLI - search and browse files, summarize and ask questions about documents, ask Egnyte Agents, manage metadata, create share links, post comments, manage users, groups, permissions, events, notes, file locks, trash, projects, profiles, and bulk or unsupported API operations. Trigger for any Egnyte file, folder, search, AI, collaboration, or admin task.
 ---
 
 # Egnyte Skill
@@ -82,7 +82,7 @@ Read the primary reference before executing — it has exact parameter requireme
 | Browse folders, read/download/upload files, create folders | [`content-management.md`](references/content-management.md) | [`auth-and-setup.md`](references/auth-and-setup.md) | `list_filesystem_by_path` on the target path after write |
 | Find files by name, content, date, or metadata | [`search-and-discovery.md`](references/search-and-discovery.md) | [`content-management.md`](references/content-management.md) | Review result count; confirm paths match expected scope |
 | Summarize, Q&A, or extract from documents | [`ai-document-intelligence.md`](references/ai-document-intelligence.md) | [`search-and-discovery.md`](references/search-and-discovery.md) (to get UUIDs) | Check citation paths against known source files |
-| Query or discover curated knowledge bases | [`knowledge-bases.md`](references/knowledge-bases.md) | [`ai-document-intelligence.md`](references/ai-document-intelligence.md) | Confirm KB `status` is `ACTIVE` before querying |
+| Discover or ask Egnyte Agents (incl. former knowledge bases) | [`agents.md`](references/agents.md) | [`ai-document-intelligence.md`](references/ai-document-intelligence.md) | Agent appears in `list_agents`; poll `get_agent_ask_status` until `COMPLETED` |
 | Share links, comments, collaboration | [`collaboration.md`](references/collaboration.md) | [`content-management.md`](references/content-management.md) | `list_links` on the file after creating to confirm URL returned |
 | File tags, custom metadata, permissions, projects | [`metadata.md`](references/metadata.md) | [`content-management.md`](references/content-management.md) | `list_filesystem_by_path(list_custom_metadata=true)` after write |
 | Bulk/admin workflows, events/audit trail, users, groups, trash, file locking, projects, profiles, and unsupported endpoints | [`egnyte-cli.md`](references/egnyte-cli.md) | [`auth-and-setup.md`](references/auth-and-setup.md) | `egnyte whoami`; `egnyte schema --list`; always dry-run before `--yes` |
@@ -121,10 +121,13 @@ These are easy to get wrong and cause silent failures or data loss. They are not
 | **`get_file_content` returns plain text** | Not base64; response fields are `entryId`, `groupId`, `content`, `totalCharacters`, `hasMore` |
 | **`advanced_search` max 20 results/page** | Use `offset` + `hasMore` for pagination; pass the returned `offset` value directly as the next call's `offset` (it is the start of the next page, not the current position) |
 | **`list_metadata_namespaces` response may be very large** | Call once per session and cache the result; do not re-fetch every turn. Domains with many namespaces or deep field schemas may return 100–200 KB+ per call. |
-| **AI tools need UUIDs, not paths** | `ask_document`, `summarize_document`, `ask_knowledge_base` take `entry_id` UUID — never a file path |
-| **`ask_ai_assistant` searches domain-wide without scope** | Without `file_entry_ids` or `folder_ids`, it searches all accessible content. CLI equivalent: `egnyte ai ask` with `selectedItems` to scope files or folders. |
+| **AI tools need UUIDs, not paths** | `ask_document`, `summarize_document`, `ask_ai_assistant`, `ask_agent` take `entry_id` / `folder_id` / `agent_id` UUIDs — never a file path |
+| **`ask_ai_assistant` is asynchronous** | Returns `executionId` immediately; poll `get_ai_assistant_status(execution_id, include_citations=true)` every few seconds until `COMPLETED`. Allow up to five minutes. `AWAITING_USER_CONFIRMATION` is terminal — reframe once, then stop. (Some domains still run the legacy synchronous tool that returns `response.text` directly and has no `get_ai_assistant_status`.) |
+| **`ask_ai_assistant` needs exactly one scope mode** | Pass `file_entry_ids` and/or `folder_ids` (max 20 combined), **or** `search_all_egnyte=true` — never both. Scoped mode is the reliable one and the one that returns citations. CLI equivalent: `egnyte ai ask` with `selectedItems`. |
+| **`ask_agent` is asynchronous and user-defined only** | Returns `agentId`, `requestId`, `conversationId`; poll `get_agent_ask_status(agent_id, request_id)` while `PLANNING`/`IN_PROGRESS` (up to two minutes). Only agents returned by `list_agents` can be asked; built-in agents are rejected. |
+| **Knowledge bases are now agents** | `list_knowledge_bases` / `ask_knowledge_base` are deprecated and error on migrated domains. A former `kb_id` is the `agent_id` — use `list_agents` / `ask_agent`. |
 | **`summarize_document` has no `question` param or citations** | Takes `entry_id` only; returns no citations — summaries cannot be verified against source excerpts. For a citation-backed summary use `ask_document(question="Summarize the key points of this document", include_citations=true)` instead. |
-| **`ask_document`/`ask_knowledge_base` param is `question`** | Not `query` |
+| **`ask_document`/`ask_ai_assistant`/`ask_agent` param is `question`** | Not `query` |
 | **Phrase search uses double quotes** | `"exact phrase"` in query string eliminates false positives |
  
 ---
@@ -155,6 +158,17 @@ These are easy to get wrong and cause silent failures or data loss. They are not
 3. set_file_metadata(group_id=<uuid>, namespace="ns", values={...merged...}, intent="Writing updated contract metadata")
 ```
 
+### Ask an Egnyte Agent
+```
+1. list_agents(intent="Finding an agent that covers HR policy questions")
+   → pick the agent whose name/description/category matches; take its agentId
+2. ask_agent(agent_id=<agentId>, question="What is our parental leave policy?", intent="Asking HR agent about parental leave")
+   → returns agentId, requestId, conversationId
+3. get_agent_ask_status(agent_id=<agentId>, request_id=<requestId>, intent="Polling agent answer")
+   → repeat every few seconds while PLANNING / IN_PROGRESS; on COMPLETED read responseText + citations
+   → on AWAITING_USER_CONFIRMATION stop and direct the user to the Egnyte web UI
+```
+
 ### Create a share link
 ```
 1. list_links(path="/Shared/file.pdf", intent="Checking for existing share links before creating")
@@ -174,7 +188,7 @@ After executing, confirm the operation succeeded before reporting back to the us
 list_filesystem_by_path(path="/Shared", intent="Smoke check — confirming MCP is available")
 ```
 
-> **Note:** This confirms MCP connectivity but does not identify the acting user. The Egnyte MCP does not expose a `who_am_i` or `domain_info` primitive. If acting-user identity matters (e.g., permission scoped to the authenticated account), ask the user to confirm their Egnyte username or check `egnyte userinfo` (live auth) or `egnyte whoami` (stored profile metadata) via CLI if available.
+> **Note:** This confirms MCP connectivity. To identify the acting user, call the MCP `whoami` tool (returns username and domain) when it is listed; otherwise ask the user to confirm their Egnyte username or check `egnyte userinfo` (live auth) or `egnyte whoami` (stored profile metadata) via CLI if available.
 
 **CLI smoke checks:**
 ```bash
