@@ -1,6 +1,6 @@
 # AI Document Intelligence
 
-Three MCP tools and their CLI equivalents for document analysis.
+MCP tools and their CLI equivalents for document analysis: `ask_document`, `summarize_document`, and the asynchronous `ask_ai_assistant` / `get_ai_assistant_status` pair. For purpose-built Egnyte Agents (and former knowledge bases) see [`agents.md`](agents.md).
 
 > **All MCP AI tools have an `intent` parameter** declared in the MCP schema. The server description marks it "REQUIRED" but it is not schema-enforced — always include it (≤15 words). MCP-layer only; does not apply to CLI calls.
 
@@ -44,7 +44,7 @@ The answer is in `response.text`. No `conversationId` is returned by this tool.
   ]
 }
 ```
-Citations are a top-level array, not nested inside `response`. Note: `ask_document` citations include `filename`, `entryId`, and `chunks` only — `objectId` and `previewUrl` are not present (they appear in `ask_knowledge_base` and `ask_ai_assistant` citations).
+Citations are a top-level array, not nested inside `response`. Note: `ask_document` citations include `filename`, `entryId`, and `chunks` only — `objectId` and `previewUrl` are not present (they appear in `get_ai_assistant_status` and `get_agent_ask_status` citations).
 
 > **Note:** Citations may not be returned for image or binary file types even when `include_citations=true` is set. Check whether `citations` is present before accessing it.
 
@@ -125,39 +125,54 @@ egnyte ai summarize /Shared/Reports/annual.pdf \
 
 ## Ask across multiple documents or folders
 
-### MCP: ask_ai_assistant
+### MCP: ask_ai_assistant → get_ai_assistant_status
 
-Best for synthesizing across a set of documents or a whole folder. Without `file_entry_ids` or `folder_ids`, `ask_ai_assistant` searches across content accessible to the current user. Provide scope parameters to restrict results to specific files or folders.
+Best for synthesizing across a set of documents or a whole folder, comparing documents, understanding what a folder is for, reading spreadsheets or scanned PDFs, extracting structured output, or generating a document back into Egnyte. **Asynchronous:** `ask_ai_assistant` returns an `executionId` immediately; the answer comes from polling `get_ai_assistant_status`.
+
+**Scoping — exactly one mode is required:**
+- `file_entry_ids` and/or `folder_ids` — maximum 20 UUIDs combined. The reliable mode, and the one that returns citations.
+- `search_all_egnyte=true` — search all content the user can access.
+- Combining ids with `search_all_egnyte=true` returns an error. Calling with neither currently falls back to an all-Egnyte search, but that fallback is deprecated and will become an error — always pass one.
 
 ```
+# Step 1 — submit (scoped)
 ask_ai_assistant(
   intent="find common risk factors across contracts",
   question="What are the common risk factors across these contracts?",
-  file_entry_ids=["uuid1", "uuid2", "uuid3"],
-  include_citations=true
+  file_entry_ids=["uuid1", "uuid2", "uuid3"]
 )
-```
+→ { "executionId": "<uuid>", "status": "IN_PROGRESS", "conversationId": "<uuid-or-null>" }
 
-```
+# Step 1 — submit (all Egnyte)
 ask_ai_assistant(
-  intent="summarize Q1 meeting notes",
-  question="Summarize all meeting notes from Q1",
-  folder_ids=["<folder-uuid>"],
+  intent="locate the latest travel policy",
+  question="What is the current travel reimbursement limit?",
+  search_all_egnyte=true
+)
+
+# Step 2 — poll
+get_ai_assistant_status(
+  intent="poll AI assistant answer",
+  execution_id="<executionId>",
   include_citations=true
 )
+→ { "executionId": "<uuid>", "status": "IN_PROGRESS" }
+→ { "executionId": "<uuid>", "status": "COMPLETED", "responseText": "...", "citations": [...] }
 ```
 
-**Response shape (base — no `include_citations`):**
-```json
-{ "response": { "text": "..." }, "conversationId": "<uuid>" }
-```
+**`get_ai_assistant_status` fields:** `status` is `IN_PROGRESS`, `COMPLETED`, or `AWAITING_USER_CONFIRMATION`. `responseText` and `citations` are present only on `COMPLETED`; `include_citations` defaults to true — pass `false` to suppress citations. A `FAILED` run surfaces as a tool error, not a status value.
 
-**Response shape (with `include_citations=true`):**
-```json
-{ "response": { "text": "..." }, "citations": [...], "conversationId": "<uuid>" }
-```
+**Polling rules:**
+- Poll every few seconds. Scoped questions usually complete in 20–60 seconds; document generation or several large files can take two to four minutes. Allow at least five minutes before treating a call as stalled.
+- `AWAITING_USER_CONFIRMATION` is terminal: retry once with a reframed `ask_ai_assistant` question; if it happens again, stop and tell the user the request cannot be completed via MCP.
+- On a rate-limit error, back off and increase the delay between retries. Put related files into one call instead of one call per file.
 
-`citations` is only present when `include_citations=true`. Citations from `ask_ai_assistant` include `objectId` and `previewUrl` fields (unlike `ask_document` citations).
+**Other behavior:**
+- Each call is an independent conversation with no follow-up turn — put the full, self-contained question in one call.
+- When a document is generated or converted, the `COMPLETED` response states the folder and filename actually used; read it from the response rather than assuming the requested path.
+- Files up to 64 MB. Web search is available and cited when the question needs public information.
+
+> **Legacy domains:** Some domains are still being moved to the asynchronous tools. There, `ask_ai_assistant` answers in a single call with `{ "response": { "text": "..." }, "citations": [...], "conversationId": "<uuid>" }`, accepts `include_citations`, and `get_ai_assistant_status` is not listed. Check the tool list: if `get_ai_assistant_status` is absent, treat `ask_ai_assistant` as synchronous.
 
 **Getting `folder_ids`:** Call `list_filesystem_by_path` — each folder in the response has a `folder_id` field. Pass as an array: `folder_ids=["<folder_id>"]`.
 
@@ -178,86 +193,9 @@ egnyte ai ask "Compare liability clauses" \
 
 ---
 
-## List and query knowledge bases
+## Egnyte Agents
 
-### MCP: list_knowledge_bases
-
-```
-list_knowledge_bases(
-  intent="find available knowledge bases",
-  status=["ACTIVE"],
-  sort_direction=["DESC"]
-)
-```
-
-**Optional parameters:**
-- `status` — filter by KB status (e.g., `"ACTIVE"`)
-- `sort_direction` — `["ASC"]` or `["DESC"]`; defaults to `["DESC"]` per MCP server description
-- `include_placeholder_data` — boolean; include placeholder entries
-- `include_processing_statistics` — boolean; include ingestion stats (useful for debugging KB readiness)
-- `include_prompts` — boolean; expose prompt configuration for the KB
-
-> **CLI vs MCP default conflict:** The CLI (`egnyte ai list-kbs`) defaults to `sortDirection: ['ASC']` per source. The MCP `list_knowledge_bases` defaults to `['DESC']` per server description. Pass `sort_direction` / `sortDirection` explicitly to avoid relying on either default.
-
-**Response shape (paginated envelope):**
-```json
-{
-  "content": [ { "kbId": "<uuid>", "name": "...", "status": "ACTIVE" } ],
-  "totalElements": 5,
-  "totalPages": 1,
-  "number": 0,
-  "size": 20,
-  "first": true,
-  "last": true,
-  "empty": false,
-  "numberOfElements": 5
-}
-```
-`content` is the array of KB objects. Check `totalElements > 0` before calling `ask_knowledge_base`.
-
-### MCP: ask_knowledge_base
-
-```
-ask_knowledge_base(
-  intent="query knowledge base for policy information",
-  kb_id="<uuid>",
-  question="What is the expense reimbursement policy?",
-  include_citations=true
-)
-```
-
-**Response shape** (unverified — based on MCP server guide; live KB unavailable in test environment):
-```json
-{
-  "response": { "text": "..." },
-  "conversationId": "<uuid>"
-}
-```
-With `include_citations=true`, a `citations` array is expected. Citations are expected to include `objectId` and `previewUrl` fields. `conversationId` is returned and may be used for conversation continuity.
-
----
-
-## Multi-turn agent conversations
-
-### CLI: egnyte agents ask
-
-For complex, multi-step analysis with conversation continuity:
-
-```bash
-egnyte agents list --fields agentId,name,status,category
-
-# Start a conversation (polls until COMPLETED, up to 5 min)
-egnyte agents ask <agentId> "Summarize the Q3 board deck" --fields responseText,citations
-
-# Continue the conversation
-egnyte agents ask <agentId> "Now compare that to Q2" \
-  --json '{"conversationId":"<id from prior response>"}' --fields responseText
-
-# Scope to specific files
-egnyte agents ask <agentId> "What are the key risks?" \
-  --json '{"selectedItems":{"files":[{"entryId":"<id>","filePath":"/Shared/contract.pdf"}]}}' \
-  --fields responseText,citations
-```
+Purpose-built agents (and all former knowledge bases) are covered in [`agents.md`](agents.md): `list_agents` → `ask_agent` → `get_agent_ask_status` via MCP, or `egnyte agents list` / `egnyte agents ask` via CLI (the CLI polls for you and supports multi-turn with `conversationId`).
 
 ---
 
@@ -268,10 +206,10 @@ egnyte agents ask <agentId> "What are the key risks?" \
 | Q&A about one specific document | `ask_document` / `egnyte ai ask-document` |
 | Summarize one document | `summarize_document` / `egnyte ai summarize` |
 | Get document text when you already have the composite ID | `fetch` (see search-and-discovery.md) |
-| Synthesize across multiple docs or a folder | `ask_ai_assistant` / `egnyte ai ask` |
+| Synthesize across multiple docs or a folder, compare documents, read spreadsheets/scans, extract structured data, generate a document | `ask_ai_assistant` → `get_ai_assistant_status` / `egnyte ai ask` |
 | Multi-turn conversation with continuity (CLI) | `egnyte agents ask` — pass `conversationId` from prior response |
-| Multi-turn via MCP | Use `conversationId` from `ask_ai_assistant` response in subsequent `chat_history` calls. For `ask_document`, pass prior exchanges in `chat_history` (array format; not formally in MCP schema — see note above). |
-| List and query knowledge bases | `list_knowledge_bases` / `ask_knowledge_base` |
+| Multi-turn via MCP | `ask_ai_assistant` and `ask_agent` have no follow-up turn — put the full question in one call. For `ask_document`, pass prior exchanges in `chat_history` (array format; not formally in MCP schema — see note above). |
+| Question for a purpose-built agent or a former knowledge base | `list_agents` → `ask_agent` → `get_agent_ask_status` / `egnyte agents ask` (see [`agents.md`](agents.md)) |
 | Semantic search across all content | `egnyte ai hybrid-search` |
 
 ---
@@ -282,5 +220,5 @@ egnyte agents ask <agentId> "What are the key risks?" \
 - Set `include_citations=true` whenever the user needs to verify sources.
 - **Chain pattern**: `summarize_document` first, then `ask_document` for specific questions.
 - For multi-turn follow-up questions: MCP uses `chat_history` (array of `{role, content}` objects); CLI uses `chatHistory` (object: `{"messages":[{"role":"user","content":"..."}]}`). These are different shapes — do not conflate them.
-- **Scope `ask_ai_assistant` for precision** — without `file_entry_ids` or `folder_ids` it searches across content accessible to the current user; provide scope to focus on specific documents.
-- **Multi-turn with `ask_ai_assistant`**: `conversationId` is returned in the response. The exact mechanism for passing it as an MCP input to continue a conversation is not declared in the MCP schema — verify before relying on it. For CLI, pass `conversationId` as a top-level `--json` param to `egnyte agents ask`.
+- **Scope `ask_ai_assistant` for precision** — pass `file_entry_ids` / `folder_ids` (max 20) for citations and reliability; use `search_all_egnyte=true` only when the user genuinely wants the whole domain searched.
+- **No multi-turn with MCP `ask_ai_assistant` or `ask_agent`** — each call is independent. For conversation continuity use CLI `egnyte agents ask` with `conversationId`.

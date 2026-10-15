@@ -42,7 +42,7 @@ Skills are automatically available once installed. The agent will use them when 
 
 `Ask questions across all documents in the Legal/Agreements folder`
 
-`Query our onboarding knowledge base for the latest IT setup steps`
+`Ask our onboarding agent for the latest IT setup steps`
 
 ### Manage files, links, and collaboration
 
@@ -57,7 +57,7 @@ Skills are automatically available once installed. The agent will use them when 
 The Egnyte skill follows the [Agent Skills Open Standard](https://agentskills.io/):
 
 - `SKILL.md` — Skill manifest with routing table, behavioral constraints, workflow steps, and guardrails
-- `references/` — Individual reference files (auth, content, search, AI intelligence, knowledge bases, collaboration, metadata, CLI, troubleshooting)
+- `references/` — Individual reference files (auth, content, search, AI intelligence, agents, collaboration, metadata, CLI, troubleshooting)
 - `rules/egnyte.mdc` — Mandatory safety guardrails (always-on)
 
 ## Prerequisites

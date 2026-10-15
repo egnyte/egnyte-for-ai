@@ -147,14 +147,9 @@ egnyte ai ask-document /Shared/Contracts/acme.pdf "Payment terms?" \
 # Summarize
 egnyte ai summarize /Shared/Reports/annual.pdf --fields response
  
-# List knowledge bases
-egnyte ai list-kbs \
-  --json '{"status":["ACTIVE"],"sortBy":["name"],"sortDirection":["ASC"]}' \
-  --fields content
- 
-# Query a knowledge base
-egnyte ai ask-kb <kb-id> "What is our refund policy?" \
-  --json '{"includeCitations":true}' --fields response,citations
+# DEPRECATED: `egnyte ai list-kbs` / `egnyte ai ask-kb` — knowledge bases are migrated to agents.
+# On a migrated domain the API returns 410 Gone (KBA_MIGRATED_TO_AGENTS). Use `egnyte agents list` /
+# `egnyte agents ask <agentId>` instead; the former KB ID is the agentId.
  
 # Semantic + keyword hybrid search
 egnyte ai hybrid-search "quarterly report" \
@@ -165,6 +160,8 @@ egnyte ai hybrid-search "quarterly report" \
 ---
 
 ## Agents (multi-turn AI conversations)
+
+User-defined Egnyte Agents, including all former knowledge bases. `agents ask` polls until `COMPLETED`/`FAILED` (up to 5 min); `--no-wait` returns immediately. Status values: `PENDING` | `RUNNING` | `COMPLETED` | `FAILED`.
 
 ```bash
 # List available agents

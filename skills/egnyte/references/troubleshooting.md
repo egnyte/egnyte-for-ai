@@ -6,7 +6,7 @@ All Egnyte MCP tools require an `intent` parameter — a brief phrase (max 15 wo
 
 Example: `intent: "Reading metadata before write to avoid data loss"`
 
-This applies to every tool: `list_filesystem_by_path`, `ask_document`, `search`, `advanced_search`, `upload_file`, `create_folder`, `set_file_metadata`, `list_knowledge_bases`, `summarize_document`, `ask_knowledge_base`, and others. Including `intent` is a behavioral convention — it is not validated by JSON schema and calls without it succeed. Omitting it may affect server-side logging or observability. Always include it as good practice.
+This applies to every tool: `list_filesystem_by_path`, `ask_document`, `search`, `advanced_search`, `upload_file`, `create_folder`, `set_file_metadata`, `summarize_document`, `ask_ai_assistant`, `get_ai_assistant_status`, `list_agents`, `ask_agent`, `get_agent_ask_status`, and others. Including `intent` is a behavioral convention — it is not validated by JSON schema and calls without it succeed. Omitting it may affect server-side logging or observability. Always include it as good practice.
 
 ---
 
@@ -143,19 +143,25 @@ When using `custom_metadata` filters in `advanced_search`, all fields in each fi
 
 ---
 
-## Knowledge base not returning results
+## `list_knowledge_bases` / `ask_knowledge_base` return a migration error
 
-```bash
-# Check KB status
-egnyte ai list-kbs --fields content
-# Look for "status": "ACTIVE" vs "CREATED" or "DELETED"
-```
+**Cause:** Knowledge bases on the domain have been migrated to Agents; the KB tools are deprecated and the CLI equivalents (`egnyte ai list-kbs`, `egnyte ai ask-kb`) return `410 Gone` (`KBA_MIGRATED_TO_AGENTS`).
 
-- `CREATED`: KB is still being built — wait a few minutes and retry
-- `DELETED`: KB is gone — fall back to `egnyte ai ask` with `--json '{"selectedItems":{"folders":[{"id":"<folder-id>"}]}}'`
-- `ACTIVE` but no answer: The question may be outside the KB's content scope. Check the `noResponseMessage` field on the KB object for guidance on what topics it covers. Fall back to `ask_ai_assistant` with `folder_ids` pointing to the same source folders.
+**Fix:** Use `list_agents` → `ask_agent` → `get_agent_ask_status` (or `egnyte agents list` / `egnyte agents ask`). The former `kb_id` is the `agent_id`. See [`agents.md`](agents.md).
 
-**Via MCP:** Use `ask_knowledge_base(kb_id=<id>, question=<question>, intent=...)`. Get the `kb_id` from `list_knowledge_bases(intent=...)`.
+---
+
+## Agent request not completing
+
+**Symptom:** `get_agent_ask_status` keeps returning `PLANNING` / `IN_PROGRESS`, or ends in `AWAITING_USER_CONFIRMATION`, `FAILED`, or `COMPLETED_FAILED`.
+
+- `PLANNING` / `IN_PROGRESS` for under two minutes is normal — keep polling every few seconds; do not poll in a tight loop (429).
+- `AWAITING_USER_CONFIRMATION` is terminal for MCP: the agent needs a confirmation or external app sign-in that MCP cannot provide. Tell the user to run that agent in the Egnyte web UI.
+- `FAILED` / `COMPLETED_FAILED`: stop polling and report the failure; retry once with a reframed question if appropriate.
+- "Agent is inactive" / "Agent not found" / "non-user-defined agent" on `ask_agent`: re-run `list_agents` and pick an active user-defined agent. Built-in agents cannot be invoked via MCP.
+- `list_agents` missing from the tool list: Agents are not enabled on the domain or the user is not a Power User/Admin — fall back to `ask_ai_assistant`.
+
+The same polling rules apply to `ask_ai_assistant` → `get_ai_assistant_status`, except that there `FAILED` surfaces as a tool error and the budget is up to five minutes.
 
 ---
 
