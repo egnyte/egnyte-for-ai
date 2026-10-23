@@ -23,7 +23,7 @@ The plugin bundles the Egnyte MCP server (`.mcp.json` at the repo root), so you 
 For bulk operations, permissions management, and scripting:
 
 ```bash
-npm install -g @egnyte/agentic-cli@2.1.1
+npm install -g @egnyte/agentic-cli@2.2.0
 egnyte login --domain https://<yourcompany>.egnyte.com
 ```
 

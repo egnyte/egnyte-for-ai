@@ -25,6 +25,6 @@ Add to `~/.cursor/mcp.json`:
 ## CLI setup (optional, for bulk operations)
 
 ```bash
-npm install -g @egnyte/agentic-cli@2.1.1
+npm install -g @egnyte/agentic-cli@2.2.0
 egnyte login --domain https://<yourcompany>.egnyte.com
 ```

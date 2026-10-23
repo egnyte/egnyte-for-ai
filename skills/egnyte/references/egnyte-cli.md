@@ -1,8 +1,8 @@
 # Egnyte CLI Reference
 
 **Package:** `@egnyte/agentic-cli`
-**Version:** `2.1.1`
-**Install:** `npm install -g @egnyte/agentic-cli@2.1.1` (only after the user confirms)
+**Version:** `2.2.0`
+**Install:** `npm install -g @egnyte/agentic-cli@2.2.0` (only after the user confirms)
 **License:** Apache-2.0
 
 The Egnyte CLI is designed for AI agent consumption: JSON-only output, zero runtime dependencies, `--dry-run` on every mutation, `--fields` for response masking.
@@ -17,7 +17,7 @@ The Egnyte CLI is designed for AI agent consumption: JSON-only output, zero runt
 |----------|-----------|--------|
 | 1 | `execute_command` tool is present | CoWork with cowork-terminal-mcp. Use `execute_command` for CLI calls and verify with `egnyte whoami` before concluding the CLI is absent. The CLI uses its stored login profile; do not pass tokens or other secrets in `env`. |
 | 2 | `execute_command` absent, Bash available | Claude Code. Use Bash for CLI calls. |
-| 3 | No shell tool that can see the user's machine | Skip the CLI and proceed with MCP tools. If the task needs the CLI, tell the user it is available from Claude Code. Optional CoWork terminal setup is in [`auth-and-setup.md`](auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp); do it only if the user asks. |
+| 3 | No shell tool that can see the user's machine | Skip the CLI and proceed with MCP tools. If the task needs the CLI, tell the user it is available from Claude Code. Optional CoWork terminal setup is done by the user, following the [egnyte-for-ai README](https://github.com/egnyte/egnyte-for-ai#optional-cli-access-in-claude-desktop-cowork). |
 
 An isolated workspace shell (for example `mcp__workspace__bash`) cannot see the user's installed packages, so a "not found" result there is not evidence the CLI is missing.
  
@@ -393,8 +393,8 @@ egnyte fs delete --bulk-file-path ./delete.csv --parallelism 2 --progress --yes
 
 | Symptom | Fix |
 |---|---|
-| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.1.1` and run it after the user confirms; if still missing, run `npm prefix -g` and add its `bin` folder to PATH |
+| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.2.0` and run it after the user confirms; if still missing, run `npm prefix -g` and add its `bin` folder to PATH |
 | Auth error / 401 | Run `egnyte whoami`; re-authenticate — see [`auth-and-setup.md`](auth-and-setup.md) |
 | Path errors | Ensure all Egnyte paths start with `/` |
 | Large response truncated | Add `--fields` to limit response fields |
-| `execute_command` missing (Claude Desktop) | See [`auth-and-setup.md`](auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp) |
+| `execute_command` missing (Claude Desktop) | Use the MCP tools; see [`auth-and-setup.md`](auth-and-setup.md#claude-desktop-cowork) |

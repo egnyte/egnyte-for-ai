@@ -9,14 +9,20 @@ The skills in this repo follow the [Agent Skills](https://agentskills.io/) forma
 ### As an Agent Skill
 
 ```bash
-npx skills add egnyte/egnyte-for-ai
+npx skills@1.7.2 add egnyte/egnyte-for-ai
 ```
 
 Check out the latest and full list of skills [here](https://skills.sh/egnyte/egnyte-for-ai).
 
 ### As a Platform Plugin
 
-This repo can also be installed as a plugin for supported platforms. You configure the Egnyte MCP server connection through your platform's MCP settings — see the setup guide for your platform below.
+This repo can also be installed as a plugin for supported platforms. The plugin bundles the Egnyte MCP server connection — see the setup guide for your platform below.
+
+In Claude Code (2.1.275 or later), install in one step:
+
+```
+/plugin install egnyte --marketplace egnyte/egnyte-for-ai
+```
 
 | Platform | Setup guide |
 |---|---|
@@ -70,9 +76,50 @@ The Egnyte skill follows the [Agent Skills Open Standard](https://agentskills.io
 
 - **Egnyte CLI** (optional) — For bulk operations, permissions, and scripting:
   ```bash
-  npm install -g @egnyte/agentic-cli@2.1.1
+  npm install -g @egnyte/agentic-cli@2.2.0
   egnyte login --domain https://<yourcompany>.egnyte.com
   ```
+
+## Optional: CLI access in Claude Desktop CoWork
+
+Claude Desktop Chat and CoWork tabs have no terminal of their own, so the Egnyte CLI is not available there by default; the agent uses the Egnyte MCP tools instead. If you also want the CLI in CoWork, you can add a terminal MCP server yourself. The agent does not set this up for you.
+
+> `cowork-terminal-mcp` is a third-party MCP server. It provides an `execute_command` tool that runs shell commands on your machine, so any Claude Desktop session can then run commands with your user's permissions. Only add it if you accept that. The Code tab has its own terminal and does not need it.
+
+1. Install a pinned version (requires [Node.js LTS](https://nodejs.org)):
+   ```bash
+   npm install -g cowork-terminal-mcp@0.4.1
+   ```
+2. Add the entry to the `mcpServers` block of `claude_desktop_config.json`, keeping any existing entries:
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+   - Linux: `~/.config/Claude/claude_desktop_config.json`
+
+   macOS / Linux:
+   ```json
+   {
+     "mcpServers": {
+       "cowork-terminal": { "command": "cowork-terminal-mcp" }
+     }
+   }
+   ```
+   Windows:
+   ```json
+   {
+     "mcpServers": {
+       "cowork-terminal": { "command": "cmd", "args": ["/c", "cowork-terminal-mcp"] }
+     }
+   }
+   ```
+3. Fully quit Claude Desktop (Quit from the menu, not just close the window) and reopen it.
+4. In CoWork, ask Claude to run `egnyte whoami`. If you are not signed in, it runs `egnyte login --domain https://<yourcompany>.egnyte.com` and asks you to paste the `code` from the OAuth redirect URL.
+
+To use your own OAuth app instead of the built-in one, run the login in your own terminal so the client secret never passes through the chat:
+
+```bash
+egnyte login --domain https://<yourcompany>.egnyte.com --client-id <id> --client-secret <secret> \
+  --scope "Egnyte.filesystem Egnyte.user"
+```
 
 ## Quick Verification
 

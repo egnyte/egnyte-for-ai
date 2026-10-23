@@ -63,19 +63,13 @@ If `egnyte whoami` returns nothing or an error, the CLI has no stored credential
 Install only after the user confirms, and pin the version:
 
 ```bash
-npm install -g @egnyte/agentic-cli@2.1.1
+npm install -g @egnyte/agentic-cli@2.2.0
 
 # Interactive login — built-in OAuth app, no client credentials required
 egnyte login --domain https://yourcompany.egnyte.com
-
-# Optional: use a custom OAuth app or restrict scopes
-egnyte login --domain https://yourcompany.egnyte.com --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET
-
-# Restrict scopes if needed
-egnyte login --domain https://yourcompany.egnyte.com --client-id YOUR_CLIENT_ID --client-secret YOUR_CLIENT_SECRET --scope "Egnyte.filesystem Egnyte.user"
 ```
 
-Credentials are stored at `~/.config/egnyte-cli/config.json` (mode `0600`).
+If the user's organization requires its own OAuth app (client ID and secret, optionally restricted scopes), the user runs `egnyte login` with those values in their own terminal, so the client secret never passes through the chat.
 
 ### CI / headless environments
 
@@ -114,87 +108,36 @@ egnyte profiles remove <name>
 
 ---
 
-## Claude Desktop (via cowork-terminal-mcp)
+## Claude Desktop CoWork
 
-This setup is optional. Claude Desktop Chat and CoWork tabs have no direct terminal access. `cowork-terminal-mcp` is a third-party MCP server that provides an `execute_command` tool, which runs shell commands on the user's host machine. Because it gives the session host shell access, set it up only when the user asks for it, explain what it does first, and confirm each step. The Code tab has its own terminal and does not need this setup.
+Claude Desktop Chat and CoWork tabs have no terminal of their own. If the user has set up a terminal MCP server such as `cowork-terminal-mcp` (optional, described in the [egnyte-for-ai README](https://github.com/egnyte/egnyte-for-ai#optional-cli-access-in-claude-desktop-cowork)), an `execute_command` tool is available and the CLI runs through it. Do not install a terminal MCP server or edit Claude Desktop configuration for the user. If `execute_command` is missing, use the MCP tools. The Code tab has its own terminal and needs no setup.
 
-### 1. Install cowork-terminal-mcp
+### Verify
 
-With the user's confirmation, install a pinned version:
-```
-npm install -g cowork-terminal-mcp@0.4.1
-```
-If `npm` is not installed, direct them to [nodejs.org](https://nodejs.org) to install Node.js LTS first.
-
-### 2. Add it to claude_desktop_config.json
-
-Config file location:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-- **Linux**: `~/.config/Claude/claude_desktop_config.json`
-
-Show the user the entry below and ask whether they want to add it themselves or have you add it. Only edit the file after they agree. Merge the entry into the existing `mcpServers` block and do not remove any existing entries.
-
-**macOS / Linux:**
-```json
-{
-  "mcpServers": {
-    "cowork-terminal": {
-      "command": "cowork-terminal-mcp"
-    }
-  }
-}
-```
-
-**Windows:**
-```json
-{
-  "mcpServers": {
-    "cowork-terminal": {
-      "command": "cmd",
-      "args": ["/c", "cowork-terminal-mcp"]
-    }
-  }
-}
-```
-
-If you made the edit, read the file back and show the user the `mcpServers` block.
-
-Then ask the user to restart:
-> Please fully quit Claude Desktop (Quit from the menu, not just close the window) and reopen it for the change to take effect.
-
-### 3. Verify
-
-After restart, confirm `execute_command` appears in your toolset, then run:
+Confirm `execute_command` appears in your toolset, then run:
 ```
 execute_command: egnyte whoami
 ```
 
-### 4. Authentication in CoWork
+### Authentication in CoWork
 
-Ask the user which option fits their setup, then run the command via `execute_command`.
-
-After login, the browser redirects to a URL like `https://www.egnyte.com?code=XXXXXX&state=...`. The user copies the `code` and pastes it back in chat. The CLI exchanges it and stores the token in its profile.
-
-**Option A — domain only (uses built-in OAuth app):**
+Run the login via `execute_command`:
 ```bash
 egnyte login --domain https://yourcompany.egnyte.com
 ```
 
-**Option B, custom OAuth app with restricted scopes:** the user runs this in their own terminal so the client secret never passes through the chat:
-```bash
-egnyte login --domain https://yourcompany.egnyte.com --client-id <id> --client-secret <secret> \
-  --scope "Egnyte.filesystem Egnyte.user"
-```
+After login, the browser redirects to a URL like `https://www.egnyte.com?code=XXXXXX&state=...`. The user copies the `code` and pastes it back in chat. The CLI exchanges it and stores the token in its profile.
+
+A custom OAuth app (client ID and secret) is set up by the user in their own terminal, so the client secret never passes through the chat.
 
 ### Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
-| `execute_command` tool missing | cowork-terminal-mcp is not set up. It is optional; offer the setup above, or use MCP tools |
-| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.1.1` and run it after the user confirms; if still missing, run `npm prefix -g` and check its `bin` folder and advise the user to add it to PATH |
+| `execute_command` tool missing | No terminal MCP server is set up. Use the MCP tools; the optional setup is in the [egnyte-for-ai README](https://github.com/egnyte/egnyte-for-ai#optional-cli-access-in-claude-desktop-cowork) |
+| `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.2.0` and run it after the user confirms; if still missing, run `npm prefix -g` and check its `bin` folder and advise the user to add it to PATH |
 | `egnyte login` doesn't complete | Browser may not have opened — ask user to open the OAuth URL manually, approve, and paste the `code` back in chat |
-| Auth error / 401 | Re-authenticate via Option A or B |
+| Auth error / 401 | Re-authenticate with `egnyte login` |
 | Path errors | Ensure all Egnyte paths start with `/` |
 | Large response truncated | Add `--fields` to limit response fields |
 

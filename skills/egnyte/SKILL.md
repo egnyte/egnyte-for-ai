@@ -15,7 +15,7 @@ The Egnyte CLI runs where the user installed it. Check which shell tool this ses
 
 - **`execute_command` is listed** → CoWork, with cowork-terminal-mcp set up by the user. Use it for CLI calls. The CLI authenticates from its stored login profile; do not pass tokens or other secrets in the `env` parameter.
 - **`execute_command` is not listed, but Bash is available** → Claude Code. Use Bash for CLI calls.
-- **Neither is available** → the CLI is not reachable from this session. Use the MCP tools. If the task needs the CLI, tell the user it can be done from Claude Code; optional CoWork terminal setup is described in [`auth-and-setup.md`](references/auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp).
+- **Neither is available** → the CLI is not reachable from this session. Use the MCP tools. If the task needs the CLI, tell the user it can be done from Claude Code; optional CoWork terminal setup, which the user does themselves, is described in the [egnyte-for-ai README](https://github.com/egnyte/egnyte-for-ai#optional-cli-access-in-claude-desktop-cowork).
 
 > An isolated workspace shell (for example `mcp__workspace__bash`) cannot see packages installed on the user's machine, so "command not found" there does not mean the CLI is missing. If that is the only shell available, treat the CLI as unavailable and use MCP.
 
@@ -33,7 +33,7 @@ Probe MCP: call `list_filesystem_by_path` with `path="/Shared"` (using whichever
 
 Check CLI with the shell tool identified above:
 
-1. Run `egnyte whoami`. If the command is not found, ask the user whether to install the CLI. Install only after they agree, using the pinned version: `npm install -g @egnyte/agentic-cli@2.1.1`. If they decline, continue with MCP.
+1. Run `egnyte whoami`. If the command is not found, ask the user whether to install the CLI. Install only after they agree, using the pinned version: `npm install -g @egnyte/agentic-cli@2.2.0`. If they decline, continue with MCP.
 2. `egnyte schema --list`: confirm the CLI is installed and the current command surface is discoverable.
 3. `egnyte whoami`: check whether a stored profile exists.
 4. `egnyte userinfo`: if it returns a user record, proceed. If it fails, treat auth as stale and re-authenticate.
@@ -44,7 +44,7 @@ Check CLI with the shell tool identified above:
    - Do not read, test, or forward tokens from environment variables or local files. See [`auth-and-setup.md`](references/auth-and-setup.md) for the supported auth options.
    - **Never navigate to developers.egnyte.com or attempt to register an OAuth app automatically.**
 
-Terminal access for CoWork (cowork-terminal-mcp) is optional. Set it up only when the user asks for it, following [`auth-and-setup.md`](references/auth-and-setup.md#claude-desktop-via-cowork-terminal-mcp), and confirm each step with the user.
+Terminal access for CoWork (for example cowork-terminal-mcp) is optional, and the user sets it up themselves following the [egnyte-for-ai README](https://github.com/egnyte/egnyte-for-ai#optional-cli-access-in-claude-desktop-cowork). Do not install a terminal MCP server or edit Claude Desktop configuration for the user.
 
 ---
 
@@ -204,6 +204,6 @@ egnyte fs get /Shared --json '{"list_content": true}' --fields folders.name,file
 2. **Context** — establish Egnyte domain and folder scope
 3. **Route** — identify the primary and paired reference docs for the user's intent
 4. **Confirm** — for destructive or externally-visible actions, confirm with user
-5. **Execute** — run commands via the appropriate tool (Bash in Claude Code, `execute_command` in CoWork) but follow guardrails STRICTLY; do not print them for the user to run
+5. **Execute** — run commands via the appropriate tool (Bash in Claude Code, `execute_command` in CoWork) and follow the guardrails strictly
 6. **Verify** — run the minimal verification check from the routing table
 7. **Surface** — return `entry_id`, path, or URL so the user can follow up
