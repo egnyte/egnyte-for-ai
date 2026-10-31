@@ -24,7 +24,7 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Egnyte",
-    "shortDescription": "Work with Egnyte content from Codex.",
+    "shortDescription": "Find and manage Egnyte content",
     "longDescription": "Use Egnyte MCP and CLI workflows to find, read, summarize, upload, share, tag, and manage enterprise content from Codex.",
     "developerName": "Egnyte",
     "category": "Productivity",
@@ -35,6 +35,7 @@
       "Search"
     ],
     "websiteURL": "https://developers.egnyte.com",
+    "supportURL": "https://helpdesk.egnyte.com",
     "privacyPolicyURL": "https://www.egnyte.com/privacy-policy",
     "termsOfServiceURL": "https://www.egnyte.com/terms-and-conditions/10-2022",
     "defaultPrompt": [
