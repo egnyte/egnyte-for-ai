@@ -32,7 +32,7 @@ claude mcp remove egnyte
 claude mcp add egnyte --transport http https://mcp-server.egnyte.com/mcp
 ```
 
-**CLI:**
+**CLI:** ask the user to run these in their own terminal (the agent does not run the interactive login), then verify with `egnyte whoami`:
 ```bash
 egnyte logout
 egnyte login --domain https://yourcompany.egnyte.com
@@ -218,8 +218,9 @@ Ask the user before installing, and install only after they confirm:
 ```bash
 npm install -g @egnyte/agentic-cli@2.2.0
 egnyte whoami
-egnyte login --domain https://yourcompany.egnyte.com
 ```
+
+If `whoami` shows no stored login, ask the user to run `egnyte login --domain https://yourcompany.egnyte.com` in their own terminal.
 
 ---
 

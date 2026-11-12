@@ -52,9 +52,10 @@ claude mcp add egnyte --transport http https://mcp-server.egnyte.com/mcp
 If `egnyte whoami` returns nothing or an error, the CLI has no stored credentials.
 
 **What to do:**
-1. Run `egnyte login --domain https://yourcompany.egnyte.com` — the CLI has a built-in OAuth app, no client credentials needed.
-2. A browser opens for OAuth. After approving, copy the `code` value from the redirect URL and paste it in the terminal.
-3. CI pipelines that cannot run an interactive login are configured by a human; see [CI / headless environments](#ci--headless-environments). An AI agent should always use `egnyte login`.
+1. Ask the user to run `egnyte login --domain https://yourcompany.egnyte.com` in their own terminal. The CLI has a built-in OAuth app, no client credentials needed.
+2. A browser opens for OAuth. After approving, the user copies the `code` value from the redirect URL and pastes it into that terminal prompt, never into the chat.
+3. When the user confirms, verify with `egnyte whoami` and `egnyte userinfo`.
+4. CI pipelines that cannot run an interactive login are configured by a human; see [CI / headless environments](#ci--headless-environments). An AI agent never runs the interactive login itself.
 
 **An AI agent cannot and must not navigate to developers.egnyte.com or register an OAuth app automatically.**
 
@@ -121,14 +122,14 @@ execute_command: egnyte whoami
 
 ### Authentication in CoWork
 
-Run the login via `execute_command`:
+Ask the user to run the login in their own terminal (not through `execute_command`):
 ```bash
 egnyte login --domain https://yourcompany.egnyte.com
 ```
 
-After login, the browser redirects to a URL like `https://www.egnyte.com?code=XXXXXX&state=...`. The user copies the `code` and pastes it back in chat. The CLI exchanges it and stores the token in its profile.
+After approving in the browser, the user pastes the `code` from the redirect URL into that terminal prompt. The CLI exchanges it and stores the login in its own profile. The code never goes into the chat. Once the user confirms, verify with `execute_command: egnyte whoami`.
 
-A custom OAuth app (client ID and secret) is set up by the user in their own terminal, so the client secret never passes through the chat.
+A custom OAuth app (client ID and secret) is also set up by the user in their own terminal, so the client secret never passes through the chat.
 
 ### Troubleshooting
 
@@ -136,7 +137,7 @@ A custom OAuth app (client ID and secret) is set up by the user in their own ter
 |---------|-----|
 | `execute_command` tool missing | No terminal MCP server is set up. Use the MCP tools; the optional setup is in the [egnyte-for-ai README](https://github.com/egnyte/egnyte-for-ai#optional-cli-access-in-claude-desktop-cowork) |
 | `command not found: egnyte` | Offer to install `@egnyte/agentic-cli@2.2.0` and run it after the user confirms; if still missing, run `npm prefix -g` and check its `bin` folder and advise the user to add it to PATH |
-| `egnyte login` doesn't complete | Browser may not have opened — ask user to open the OAuth URL manually, approve, and paste the `code` back in chat |
+| `egnyte login` doesn't complete | Browser may not have opened. Ask the user to open the OAuth URL printed in their terminal, approve, and paste the `code` into that terminal, not into the chat |
 | Auth error / 401 | Re-authenticate with `egnyte login` |
 | Path errors | Ensure all Egnyte paths start with `/` |
 | Large response truncated | Add `--fields` to limit response fields |

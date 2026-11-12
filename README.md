@@ -112,7 +112,7 @@ Claude Desktop Chat and CoWork tabs have no terminal of their own, so the Egnyte
    }
    ```
 3. Fully quit Claude Desktop (Quit from the menu, not just close the window) and reopen it.
-4. In CoWork, ask Claude to run `egnyte whoami`. If you are not signed in, it runs `egnyte login --domain https://<yourcompany>.egnyte.com` and asks you to paste the `code` from the OAuth redirect URL.
+4. In CoWork, ask Claude to run `egnyte whoami`. If you are not signed in, it asks you to run `egnyte login --domain https://<yourcompany>.egnyte.com` in your own terminal. Paste the `code` from the OAuth redirect URL into that terminal, not into the chat.
 
 To use your own OAuth app instead of the built-in one, run the login in your own terminal so the client secret never passes through the chat:
 

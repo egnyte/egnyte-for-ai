@@ -38,8 +38,9 @@ Check CLI with the shell tool identified above:
 3. `egnyte whoami`: check whether a stored profile exists.
 4. `egnyte userinfo`: if it returns a user record, proceed. If it fails, treat auth as stale and re-authenticate.
 5. **If no credentials** (no output, "not logged in", or `userinfo` fails):
-   - **Stop. Ask the user for their Egnyte domain**, then run `egnyte login --domain https://<domain>.egnyte.com`.
-   - The CLI has a built-in OAuth app, so no client credentials are needed. A browser opens for OAuth; the user pastes the `code` from the redirect URL.
+   - **Stop. Ask the user for their Egnyte domain**, then ask them to run `egnyte login --domain https://<domain>.egnyte.com` in their own terminal. The agent does not run the interactive login.
+   - The CLI has a built-in OAuth app, so no client credentials are needed. A browser opens for OAuth and the user completes the login entirely in their own terminal. The OAuth `code` never goes into the chat.
+   - After the user confirms the login is done, re-run `egnyte whoami` and `egnyte userinfo` to verify, then continue.
    - For multiple domains, use `egnyte login --profile <name>` and `egnyte profiles list/use/remove`.
    - Do not read, test, or forward tokens from environment variables or local files. See [`auth-and-setup.md`](references/auth-and-setup.md) for the supported auth options.
    - **Never navigate to developers.egnyte.com or attempt to register an OAuth app automatically.**
