@@ -19,7 +19,7 @@
     "collaboration",
     "search"
   ],
-  "logo": "assets/logo.svg",
+  "logo": "assets/egnyteLogo.svg",
   "skills": "./skills/",
   "rules": "./rules/",
   "mcpServers": "./.mcp.json"

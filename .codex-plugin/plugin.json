@@ -44,7 +44,7 @@
       "Upload this report to Egnyte and create a share link."
     ],
     "brandColor": "#0BC5BA",
-    "composerIcon": "./assets/logo.svg",
-    "logo": "./assets/logo.svg"
+    "composerIcon": "./assets/egnyteLogo.svg",
+    "logo": "./assets/egnyteLogo.svg"
   }
 }
