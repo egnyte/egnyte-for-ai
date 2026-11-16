@@ -1,6 +1,6 @@
 {
   "name": "egnyte",
-  "version": "1.1.0",
+  "version": "5.0.1",
   "description": "Search, read, and manage Egnyte content, use Egnyte AI document intelligence, and run bulk operations through the Egnyte MCP server and Egnyte CLI.",
   "author": {
     "name": "Egnyte"
@@ -19,7 +19,7 @@
     "collaboration",
     "search"
   ],
-  "logo": "assets/logo.svg",
+  "logo": "assets/egnyteLogo.svg",
   "skills": "./skills/",
   "rules": "./rules/",
   "mcpServers": "./.mcp.json"
