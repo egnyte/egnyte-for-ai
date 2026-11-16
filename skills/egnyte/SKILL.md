@@ -41,7 +41,7 @@ Check CLI with the shell tool identified above:
    - **Stop. Ask the user for their Egnyte domain**, then ask them to run `egnyte login --domain https://<domain>.egnyte.com` in their own terminal. The agent does not run the interactive login.
    - The CLI has a built-in OAuth app, so no client credentials are needed. A browser opens for OAuth and the user completes the login entirely in their own terminal. The OAuth `code` never goes into the chat.
    - After the user confirms the login is done, re-run `egnyte whoami` and `egnyte userinfo` to verify, then continue.
-   - For multiple domains, use `egnyte login --profile <name>` and `egnyte profiles list/use/remove`.
+   - For multiple domains, the user runs `egnyte login --profile <name>` in their own terminal; the agent may use `egnyte profiles list/use/remove`.
    - Do not read, test, or forward tokens from environment variables or local files. See [`auth-and-setup.md`](references/auth-and-setup.md) for the supported auth options.
    - **Never navigate to developers.egnyte.com or attempt to register an OAuth app automatically.**
 
@@ -97,7 +97,7 @@ Read the primary reference before executing — it has exact parameter requireme
 8. **Confirm before commenting** — confirm before `create_comment` or `egnyte notes add`
 9. **Pace AI calls in bulk loops** — for MCP AI calls (`ask_document`, `summarize_document`), pace calls adaptively and respect `Retry-After` headers on 429s; CLI handles retries automatically with exponential backoff
 10. **Never REST silently** — never call `egnyte request` or raw `curl` without explicit user confirmation; offer MCP or CLI alternatives first
-11. **Credentials**: authenticate the CLI with `egnyte login` (stored profile). Never hardcode, echo, or pass tokens, client secrets, or other credentials in commands or tool arguments, and never read them from environment variables or local files
+11. **Credentials**: rely on the stored profile the user created with `egnyte login`. Never hardcode, echo, or pass tokens, client secrets, or other credentials in commands or tool arguments, and never read them from environment variables or local files
     Full guardrails in [`rules/egnyte.mdc`](../../rules/egnyte.mdc).
 
 ---
